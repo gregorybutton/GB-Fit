@@ -552,57 +552,89 @@ export default function Root() {
     const data = logs[logKey(selectedDay.day, selectedExercise)] || [];
     const latest = data.length > 0 ? data[data.length - 1].weight : null;
     const first = data.length > 1 ? data[0].weight : null;
-    const change = first && latest ? (parseFloat(latest) - parseFloat(first)).toFixed(1) : null;
+    const totalChange = first && latest ? (parseFloat(latest) - parseFloat(first)).toFixed(1) : null;
 
     return (
       <View style={styles.container}>
         <TouchableOpacity onPress={() => setScreen('day')} style={styles.backBtn}>
           <Text style={styles.backText}>‹ Back to {selectedDay.day.split(' – ')[0]}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Progress</Text>
-        <Text style={styles.subtitle}>{selectedExercise}</Text>
-        <View style={styles.progressImgRow}>
-          <ExerciseImage exerciseName={selectedExercise} />
-        </View>
 
-        {data.length > 0 && (
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{latest}</Text>
-              <Text style={styles.statLabel}>Latest</Text>
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={styles.progressHeader}>
+            <ExerciseImage exerciseName={selectedExercise} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.title2}>{selectedExercise.replace(/\s*\d+[×xX]\d+\s*/g, '').trim()}</Text>
+              <Text style={styles.subtitle2}>{selectedDay.day}</Text>
             </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{data.length}</Text>
-              <Text style={styles.statLabel}>Weeks</Text>
-            </View>
-            {change !== null && (
-              <View style={styles.statCard}>
-                <Text style={[styles.statValue, { color: parseFloat(change) >= 0 ? COLORS.success : COLORS.accent }]}>
-                  {parseFloat(change) >= 0 ? '+' : ''}{change}
-                </Text>
-                <Text style={styles.statLabel}>Total Change</Text>
-              </View>
-            )}
           </View>
-        )}
 
-        <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Weight Over Time</Text>
-          <BarChart data={data} />
-        </View>
-
-        <FlatList
-          data={[...data].reverse()}
-          keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.logRow}>
-              <Text style={styles.logWeek}>Week {item.week}</Text>
-              <Text style={styles.logWeight}>{item.weight}</Text>
+          {/* Stats Row */}
+          {data.length > 0 && (
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{latest}</Text>
+                <Text style={styles.statLabel}>Latest</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{data.length}</Text>
+                <Text style={styles.statLabel}>Weeks</Text>
+              </View>
+              {totalChange !== null && (
+                <View style={styles.statCard}>
+                  <Text style={[styles.statValue, { color: parseFloat(totalChange) >= 0 ? COLORS.success : COLORS.accent }]}>
+                    {parseFloat(totalChange) >= 0 ? '+' : ''}{totalChange}
+                  </Text>
+                  <Text style={styles.statLabel}>Total Change</Text>
+                </View>
+              )}
             </View>
           )}
-          ListHeaderComponent={data.length > 0 ? <Text style={styles.sectionLabel}>Log History</Text> : null}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        />
+
+          {/* Graph */}
+          <View style={styles.chartContainer}>
+            <Text style={styles.chartTitle}>Weight Over Time</Text>
+            <BarChart data={data} />
+          </View>
+
+          {/* Table */}
+          {data.length > 0 ? (
+            <View style={styles.tableContainer}>
+              <Text style={styles.sectionLabel}>Log History</Text>
+              {/* Table Header */}
+              <View style={[styles.tableRow, styles.tableHeaderRow]}>
+                <Text style={[styles.tableCell, styles.tableHeaderCell, styles.weekCol]}>Week</Text>
+                <Text style={[styles.tableCell, styles.tableHeaderCell, styles.weightCol]}>Weight</Text>
+                <Text style={[styles.tableCell, styles.tableHeaderCell, styles.changeCol]}>Change</Text>
+                <Text style={[styles.tableCell, styles.tableHeaderCell, styles.dateCol]}>Entry #</Text>
+              </View>
+              {/* Table Rows */}
+              {data.map((entry, i) => {
+                const prev = i > 0 ? parseFloat(data[i - 1].weight) : null;
+                const curr = parseFloat(entry.weight);
+                const diff = prev !== null ? (curr - prev).toFixed(1) : null;
+                const diffNum = diff !== null ? parseFloat(diff) : null;
+                return (
+                  <View key={i} style={[styles.tableRow, i % 2 === 0 && styles.tableRowAlt]}>
+                    <Text style={[styles.tableCell, styles.weekCol]}>Week {entry.week}</Text>
+                    <Text style={[styles.tableCell, styles.weightCol, styles.weightValue]}>{entry.weight}</Text>
+                    <Text style={[
+                      styles.tableCell,
+                      styles.changeCol,
+                      diff !== null && { color: diffNum >= 0 ? COLORS.success : COLORS.accent },
+                    ]}>
+                      {diff === null ? '—' : (diffNum >= 0 ? `+${diff}` : diff)}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.dateCol, styles.entryNum]}>#{i + 1}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <Text style={styles.emptyChart}>No entries yet. Tap "+ Log This Week" to get started!</Text>
+          )}
+        </ScrollView>
 
         <TouchableOpacity style={[styles.logBtn, styles.floatBtn]} onPress={() => openLogModal(selectedExercise)}>
           <Text style={styles.logBtnText}>+ Log This Week</Text>
@@ -706,6 +738,21 @@ const styles = StyleSheet.create({
   exImgEmoji: { fontSize: 28 },
   exImg: { width: 80, height: 60, borderRadius: 8 },
   progressImgRow: { alignItems: 'center', marginBottom: 16 },
+  progressHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+  title2: { fontSize: 18, fontWeight: 'bold', color: COLORS.text },
+  subtitle2: { fontSize: 13, color: COLORS.muted, marginTop: 2 },
+  tableContainer: { backgroundColor: COLORS.card, borderRadius: 12, overflow: 'hidden', marginBottom: 16 },
+  tableRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12 },
+  tableHeaderRow: { backgroundColor: COLORS.input },
+  tableRowAlt: { backgroundColor: '#ffffff08' },
+  tableCell: { fontSize: 13, color: COLORS.text, textAlign: 'center' },
+  tableHeaderCell: { color: COLORS.muted, fontWeight: 'bold', fontSize: 12 },
+  weekCol: { flex: 2, textAlign: 'left' },
+  weightCol: { flex: 2, textAlign: 'center' },
+  changeCol: { flex: 2, textAlign: 'center' },
+  dateCol: { flex: 1, textAlign: 'right' },
+  weightValue: { fontWeight: 'bold', color: COLORS.text },
+  entryNum: { color: COLORS.muted, fontSize: 11 },
   exerciseName: { color: COLORS.text, fontSize: 15, fontWeight: 'bold', marginBottom: 4 },
   logCount: { color: COLORS.muted, fontSize: 12, marginBottom: 10 },
   exerciseBtns: { flexDirection: 'row', gap: 8 },
