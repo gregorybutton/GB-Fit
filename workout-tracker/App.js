@@ -27,180 +27,60 @@ const COLORS = {
 
 function buildPlan(days) { return days; }
 
-function getClosestDays(plan, days) {
-  const available = Object.keys(plan).map(Number);
-  return available.reduce((prev, curr) =>
-    Math.abs(curr - days) < Math.abs(prev - days) ? curr : prev
-  );
-}
 
 const WORKOUT_PLANS = {
-  'Lose Weight': {
-    Beginner: {
-      1: buildPlan([
-        { day: 'Day 1 – Full Body', exercises: ['Bodyweight Squats 3×15', 'Push-Ups 3×10', 'Plank 3×30s', 'Jumping Jacks 3×30', 'Mountain Climbers 3×20'] },
-      ]),
-      3: buildPlan([
-        { day: 'Day 1 – Lower Body', exercises: ['Squats 3×15', 'Lunges 3×12', 'Glute Bridges 3×15', 'Calf Raises 3×20'] },
-        { day: 'Day 2 – Upper Body', exercises: ['Push-Ups 3×10', 'Dumbbell Rows 3×12', 'Shoulder Press 3×10', 'Bicep Curls 3×12'] },
-        { day: 'Day 3 – Cardio & Core', exercises: ['Jumping Jacks 3×30', 'Mountain Climbers 3×20', 'Plank 3×30s', 'Crunches 3×20', 'Burpees 3×10'] },
-      ]),
-      5: buildPlan([
-        { day: 'Day 1 – Chest & Triceps', exercises: ['Push-Ups 4×12', 'Dips 3×10', 'Chest Flys 3×12', 'Tricep Kickbacks 3×12'] },
-        { day: 'Day 2 – Back & Biceps', exercises: ['Dumbbell Rows 4×12', 'Bicep Curls 3×12', 'Lat Pulldowns 3×12', 'Hammer Curls 3×12'] },
-        { day: 'Day 3 – Cardio', exercises: ['Jump Rope 5×2min', 'Burpees 4×10', 'High Knees 4×30s', 'Box Jumps 3×10'] },
-        { day: 'Day 4 – Legs', exercises: ['Squats 4×15', 'Lunges 3×12', 'Leg Press 3×15', 'Calf Raises 4×20'] },
-        { day: 'Day 5 – Core & Shoulders', exercises: ['Plank 4×45s', 'Crunches 4×20', 'Shoulder Press 3×12', 'Lateral Raises 3×12'] },
-      ]),
-    },
-    Intermediate: {
-      1: buildPlan([
-        { day: 'Day 1 – Full Body HIIT', exercises: ['Burpees 4×12', 'Jump Squats 4×15', 'Push-Ups 4×15', 'V-Ups 4×15', 'Sprint Intervals 5×30s'] },
-      ]),
-      3: buildPlan([
-        { day: 'Day 1 – Push', exercises: ['Bench Press 4×10', 'Shoulder Press 4×10', 'Tricep Dips 3×12', 'Chest Flys 3×12'] },
-        { day: 'Day 2 – Pull & Cardio', exercises: ['Pull-Ups 4×8', 'Barbell Rows 4×10', 'Bicep Curls 3×12', 'Treadmill 20min'] },
-        { day: 'Day 3 – Legs & Core', exercises: ['Deadlifts 4×8', 'Bulgarian Split Squats 3×10', 'Leg Curls 3×12', 'Plank 4×45s'] },
-      ]),
-      5: buildPlan([
-        { day: 'Day 1 – Chest', exercises: ['Bench Press 4×10', 'Incline Press 3×10', 'Cable Flys 3×12', 'Push-Ups 3×15'] },
-        { day: 'Day 2 – Back', exercises: ['Deadlift 4×6', 'Pull-Ups 4×8', 'Seated Rows 3×12', 'Face Pulls 3×15'] },
-        { day: 'Day 3 – HIIT Cardio', exercises: ['Sprint Intervals 8×30s', 'Jump Rope 5×1min', 'Burpees 4×12', 'Box Jumps 4×10'] },
-        { day: 'Day 4 – Legs', exercises: ['Squats 4×10', 'Romanian Deadlift 3×10', 'Leg Press 3×12', 'Calf Raises 4×20'] },
-        { day: 'Day 5 – Shoulders & Arms', exercises: ['OHP 4×10', 'Lateral Raises 3×15', 'Bicep Curls 3×12', 'Skull Crushers 3×12'] },
-      ]),
-    },
-    Advanced: {
-      1: buildPlan([
-        { day: 'Day 1 – Intense Full Body', exercises: ['Clean & Press 5×5', 'Thrusters 4×10', 'Pull-Ups 4×10', 'Kettlebell Swings 4×15', 'Battle Ropes 4×30s'] },
-      ]),
-      3: buildPlan([
-        { day: 'Day 1 – Heavy Push', exercises: ['Bench Press 5×5', 'Incline DB Press 4×8', 'OHP 4×8', 'Weighted Dips 4×10'] },
-        { day: 'Day 2 – Heavy Pull', exercises: ['Deadlift 5×3', 'Weighted Pull-Ups 4×6', 'T-Bar Rows 4×8', 'Face Pulls 4×15'] },
-        { day: 'Day 3 – Legs & Conditioning', exercises: ['Squat 5×5', 'Bulgarian Split Squat 4×10', 'Nordic Curls 4×6', 'Farmer Carries 4×40m'] },
-      ]),
-      5: buildPlan([
-        { day: 'Day 1 – Chest & Triceps', exercises: ['Bench Press 5×5', 'Incline DB Press 4×8', 'Cable Crossovers 3×12', 'Weighted Dips 4×10', 'Overhead Tricep Ext 3×12'] },
-        { day: 'Day 2 – Back & Biceps', exercises: ['Deadlift 5×3', 'Weighted Pull-Ups 4×6', 'Barbell Rows 4×8', 'Hammer Curls 3×12', 'EZ Bar Curls 3×10'] },
-        { day: 'Day 3 – HIIT & Conditioning', exercises: ['Sprint Intervals 10×20s', 'Sled Push 5×20m', 'Battle Ropes 5×30s', 'Box Jumps 4×12'] },
-        { day: 'Day 4 – Legs', exercises: ['Back Squat 5×5', 'Romanian Deadlift 4×8', 'Hack Squat 3×12', 'Nordic Curls 3×6', 'Calf Raises 5×20'] },
-        { day: 'Day 5 – Shoulders & Core', exercises: ['OHP 5×5', 'Arnold Press 3×10', 'Lateral Raises 4×15', 'Dragon Flags 4×8', 'Ab Wheel 4×10'] },
-      ]),
-    },
-  },
-  'Build Muscle': {
-    Beginner: {
-      1: buildPlan([
-        { day: 'Day 1 – Full Body', exercises: ['Squats 3×10', 'Push-Ups 3×10', 'Dumbbell Rows 3×10', 'Shoulder Press 3×10', 'Plank 3×30s'] },
-      ]),
-      3: buildPlan([
-        { day: 'Day 1 – Chest & Shoulders', exercises: ['Push-Ups 4×12', 'DB Shoulder Press 3×12', 'Lateral Raises 3×12', 'Front Raises 3×12'] },
-        { day: 'Day 2 – Back & Biceps', exercises: ['DB Rows 4×12', 'Bicep Curls 3×12', 'Lat Pulldowns 3×12', 'Hammer Curls 3×12'] },
-        { day: 'Day 3 – Legs & Core', exercises: ['Squats 4×12', 'Lunges 3×12', 'Calf Raises 4×15', 'Plank 3×30s', 'Crunches 3×15'] },
-      ]),
-      5: buildPlan([
-        { day: 'Day 1 – Chest', exercises: ['DB Bench Press 4×10', 'Push-Ups 3×12', 'Chest Flys 3×12', 'Incline Push-Ups 3×12'] },
-        { day: 'Day 2 – Back', exercises: ['DB Rows 4×10', 'Lat Pulldowns 3×12', 'Seated Cable Rows 3×12', 'Straight-Arm Pulldowns 3×12'] },
-        { day: 'Day 3 – Shoulders', exercises: ['DB Shoulder Press 4×10', 'Lateral Raises 3×15', 'Front Raises 3×12', 'Rear Delt Flys 3×12'] },
-        { day: 'Day 4 – Arms', exercises: ['Bicep Curls 4×12', 'Hammer Curls 3×12', 'Tricep Pushdowns 4×12', 'Skull Crushers 3×10'] },
-        { day: 'Day 5 – Legs & Core', exercises: ['Squats 4×12', 'Romanian Deadlift 3×12', 'Leg Press 3×15', 'Calf Raises 4×20', 'Plank 3×45s'] },
-      ]),
-    },
-    Intermediate: {
-      1: buildPlan([
-        { day: 'Day 1 – Full Body Strength', exercises: ['Deadlift 3×6', 'Bench Press 3×8', 'Barbell Rows 3×8', 'OHP 3×8', 'Squats 3×8'] },
-      ]),
-      3: buildPlan([
-        { day: 'Day 1 – Push', exercises: ['Bench Press 4×8', 'OHP 4×8', 'Incline DB Press 3×10', 'Tricep Dips 3×12', 'Lateral Raises 3×12'] },
-        { day: 'Day 2 – Pull', exercises: ['Deadlift 4×6', 'Pull-Ups 4×8', 'Barbell Rows 4×8', 'Bicep Curls 3×12', 'Face Pulls 3×15'] },
-        { day: 'Day 3 – Legs', exercises: ['Back Squat 4×8', 'Romanian Deadlift 3×10', 'Leg Press 3×12', 'Leg Curls 3×12', 'Calf Raises 4×20'] },
-      ]),
-      5: buildPlan([
-        { day: 'Day 1 – Chest', exercises: ['Bench Press 5×5', 'Incline Press 4×8', 'Cable Flys 3×12', 'DB Pullovers 3×12'] },
-        { day: 'Day 2 – Back', exercises: ['Deadlift 4×5', 'Pull-Ups 4×8', 'Cable Rows 4×10', 'Straight-Arm Pulldowns 3×12'] },
-        { day: 'Day 3 – Shoulders', exercises: ['OHP 4×8', 'Arnold Press 3×10', 'Lateral Raises 4×15', 'Rear Delt Machine 3×15'] },
-        { day: 'Day 4 – Arms', exercises: ['EZ Bar Curls 4×10', 'Incline DB Curls 3×12', 'Skull Crushers 4×10', 'Cable Pushdowns 3×12'] },
-        { day: 'Day 5 – Legs', exercises: ['Squats 5×5', 'Leg Press 4×10', 'Romanian Deadlift 3×10', 'Leg Curls 3×12', 'Calf Raises 5×20'] },
-      ]),
-    },
-    Advanced: {
-      1: buildPlan([
-        { day: 'Day 1 – Max Effort Full Body', exercises: ['Deadlift 5×3', 'Bench Press 5×3', 'Front Squat 4×5', 'Weighted Pull-Ups 4×5', 'OHP 4×5'] },
-      ]),
-      3: buildPlan([
-        { day: 'Day 1 – Heavy Push', exercises: ['Bench Press 5×3', 'OHP 4×5', 'Weighted Dips 4×8', 'Cable Crossovers 3×12', 'Skull Crushers 4×10'] },
-        { day: 'Day 2 – Heavy Pull', exercises: ['Deadlift 5×3', 'Weighted Pull-Ups 5×5', 'Pendlay Rows 4×6', 'EZ Bar Curls 4×10', 'Hammer Curls 3×12'] },
-        { day: 'Day 3 – Legs', exercises: ['Back Squat 5×3', 'Front Squat 3×5', 'Romanian Deadlift 4×8', 'Nordic Curls 4×6', 'Standing Calf Raises 5×15'] },
-      ]),
-      5: buildPlan([
-        { day: 'Day 1 – Chest & Triceps', exercises: ['Bench Press 5×3', 'Incline Bench 4×6', 'Weighted Dips 4×8', 'Cable Flys 3×12', 'Overhead Tricep Ext 4×10'] },
-        { day: 'Day 2 – Back & Biceps', exercises: ['Deadlift 5×3', 'Weighted Pull-Ups 5×5', 'Pendlay Rows 4×6', 'Incline DB Curls 4×10', 'Preacher Curls 3×12'] },
-        { day: 'Day 3 – Shoulders', exercises: ['OHP 5×5', 'Arnold Press 4×8', 'Lateral Raises 4×15', 'Rear Delt Flys 4×12', 'Shrugs 4×12'] },
-        { day: 'Day 4 – Legs', exercises: ['Back Squat 5×3', 'Romanian Deadlift 4×6', 'Hack Squat 3×10', 'Nordic Curls 4×6', 'Seated Calf Raises 5×15'] },
-        { day: 'Day 5 – Arms & Core', exercises: ['EZ Bar Curls 5×8', 'Hammer Curls 4×10', 'Skull Crushers 5×8', 'Tricep Dips 4×10', 'Ab Wheel 4×10'] },
-      ]),
-    },
-  },
-  'General Fitness': {
-    Beginner: {
-      1: buildPlan([
-        { day: 'Day 1 – Full Body', exercises: ['Squats 3×12', 'Push-Ups 3×10', 'Plank 3×30s', 'Jumping Jacks 3×20', 'Dumbbell Rows 3×10'] },
-      ]),
-      3: buildPlan([
-        { day: 'Day 1 – Strength', exercises: ['Squats 3×12', 'Push-Ups 3×12', 'DB Rows 3×12', 'Shoulder Press 3×10'] },
-        { day: 'Day 2 – Cardio & Core', exercises: ['Brisk Walk/Jog 20min', 'Plank 3×30s', 'Crunches 3×15', 'Leg Raises 3×12'] },
-        { day: 'Day 3 – Full Body', exercises: ['Lunges 3×12', 'Dips 3×10', 'Lat Pulldowns 3×12', 'Calf Raises 3×15', 'Bicycle Crunches 3×20'] },
-      ]),
-      5: buildPlan([
-        { day: 'Day 1 – Upper Strength', exercises: ['DB Bench Press 3×12', 'DB Rows 3×12', 'Shoulder Press 3×10', 'Bicep Curls 3×12'] },
-        { day: 'Day 2 – Cardio', exercises: ['Jog 20-30min', 'Jump Rope 5×1min', 'High Knees 3×30s'] },
-        { day: 'Day 3 – Lower Body', exercises: ['Squats 4×12', 'Lunges 3×12', 'Glute Bridges 3×15', 'Calf Raises 3×20'] },
-        { day: 'Day 4 – Core & Flexibility', exercises: ['Plank 4×30s', 'Dead Bug 3×10', 'Russian Twists 3×20', 'Hip Flexor Stretch 3×30s'] },
-        { day: 'Day 5 – Full Body', exercises: ['Deadlift 3×10', 'Push-Ups 3×12', 'Pull-Ups 3×6', 'Goblet Squats 3×12'] },
-      ]),
-    },
-    Intermediate: {
-      1: buildPlan([
-        { day: 'Day 1 – Full Body', exercises: ['Deadlift 3×8', 'Bench Press 3×8', 'Pull-Ups 3×8', 'Squats 3×10', 'OHP 3×8'] },
-      ]),
-      3: buildPlan([
-        { day: 'Day 1 – Strength A', exercises: ['Squat 4×6', 'Bench Press 4×8', 'Barbell Row 4×8', 'OHP 3×10'] },
-        { day: 'Day 2 – Cardio & Mobility', exercises: ['Run 30min', 'Hip 90-90 Stretch', 'Thoracic Rotations', 'Pigeon Pose', 'Foam Roll'] },
-        { day: 'Day 3 – Strength B', exercises: ['Deadlift 4×5', 'Pull-Ups 4×8', 'Incline Press 3×10', 'Bulgarian Split Squat 3×10'] },
-      ]),
-      5: buildPlan([
-        { day: 'Day 1 – Push', exercises: ['Bench Press 4×8', 'OHP 3×10', 'Incline DB Press 3×10', 'Tricep Dips 3×12'] },
-        { day: 'Day 2 – Pull', exercises: ['Deadlift 3×6', 'Pull-Ups 4×8', 'Cable Rows 3×12', 'Bicep Curls 3×12'] },
-        { day: 'Day 3 – Cardio', exercises: ['Run 5K', 'Jump Rope 10min', 'Cycling 20min'] },
-        { day: 'Day 4 – Legs', exercises: ['Squats 4×8', 'Romanian Deadlift 3×10', 'Leg Press 3×12', 'Calf Raises 4×15'] },
-        { day: 'Day 5 – Core & Mobility', exercises: ['Plank 4×45s', 'Dead Bug 3×12', 'Ab Wheel 3×10', 'Full Body Stretching 15min'] },
-      ]),
-    },
-    Advanced: {
-      1: buildPlan([
-        { day: 'Day 1 – Full Body Power', exercises: ['Power Clean 4×4', 'Bench Press 4×5', 'Front Squat 4×5', 'Weighted Pull-Ups 4×6', 'Farmer Carries 4×40m'] },
-      ]),
-      3: buildPlan([
-        { day: 'Day 1 – Strength', exercises: ['Squat 5×5', 'Bench Press 5×5', 'Barbell Row 5×5'] },
-        { day: 'Day 2 – Conditioning', exercises: ['Run 5K or Cycle 45min', 'Kettlebell Swings 5×15', 'Box Jumps 4×10', 'Battle Ropes 4×30s'] },
-        { day: 'Day 3 – Strength B', exercises: ['Deadlift 5×3', 'OHP 4×6', 'Weighted Pull-Ups 5×5', 'Bulgarian Split Squat 4×8'] },
-      ]),
-      5: buildPlan([
-        { day: 'Day 1 – Strength Push', exercises: ['Bench Press 5×3', 'OHP 4×5', 'Weighted Dips 4×8', 'Incline DB Press 3×10'] },
-        { day: 'Day 2 – Strength Pull', exercises: ['Deadlift 5×3', 'Weighted Pull-Ups 5×5', 'Pendlay Rows 4×6', 'Face Pulls 4×15'] },
-        { day: 'Day 3 – Conditioning', exercises: ['Run 5K', 'Sprint Intervals 8×30s', 'Sled Push 4×20m'] },
-        { day: 'Day 4 – Legs', exercises: ['Back Squat 5×3', 'Romanian Deadlift 4×6', 'Hack Squat 3×10', 'Nordic Curls 4×6'] },
-        { day: 'Day 5 – Weak Points & Core', exercises: ['Targeted Isolation Work', 'Ab Wheel 5×10', 'Dragon Flags 4×8', 'Farmer Carries 4×40m'] },
-      ]),
-    },
-  },
+  'Build Muscle': buildPlan([
+    { day: 'Sunday – Rest', exercises: ['Full Body Stretching 15min', 'Foam Roll', 'Deep Breathing 5min'] },
+    { day: 'Monday – Upper Body', exercises: ['Bench Press 4×8', 'Barbell Rows 4×8', 'OHP 3×10', 'Pull-Ups 3×8', 'Bicep Curls 3×12', 'Tricep Pushdowns 3×12'] },
+    { day: 'Tuesday – Lower Body', exercises: ['Back Squat 4×8', 'Romanian Deadlift 3×10', 'Leg Press 3×12', 'Leg Curls 3×12', 'Calf Raises 4×20'] },
+    { day: 'Wednesday – Rest', exercises: ['Full Body Stretching 15min', 'Foam Roll', 'Deep Breathing 5min'] },
+    { day: 'Thursday – Push Day', exercises: ['Bench Press 4×8', 'Incline DB Press 3×10', 'OHP 4×8', 'Lateral Raises 3×15', 'Tricep Dips 3×12', 'Cable Flys 3×12'] },
+    { day: 'Friday – Pull Day', exercises: ['Deadlift 4×5', 'Pull-Ups 4×8', 'Cable Rows 4×10', 'Face Pulls 3×15', 'EZ Bar Curls 4×10', 'Hammer Curls 3×12'] },
+    { day: 'Saturday – Leg Day', exercises: ['Back Squat 5×5', 'Front Squat 3×6', 'Leg Press 4×10', 'Nordic Curls 3×6', 'Leg Curls 3×12', 'Calf Raises 5×20'] },
+  ]),
+};
+
+const PT_PLANS = {
+  'Knee': [
+    { day: 'Phase 1 – Early Recovery', exercises: ['Quad Sets 3×15', 'Heel Slides 3×12', 'Straight Leg Raises 3×10', 'Ankle Pumps 3×15', 'Seated Knee Extensions 3×10'] },
+    { day: 'Phase 2 – Strengthening', exercises: ['Mini Squats 3×12', 'Terminal Knee Extensions 3×15', 'Step-Ups 3×10', 'Clamshells 3×12', 'Single Leg Balance 3×20s'] },
+    { day: 'Phase 3 – Return to Activity', exercises: ['Leg Press 3×12', 'Bulgarian Split Squat 3×8', 'Nordic Curl Negatives 3×5', 'Lateral Band Walks 3×15', 'Single Leg RDL 3×10'] },
+  ],
+  'Shoulder': [
+    { day: 'Phase 1 – Pain Relief & Mobility', exercises: ['Pendulum Swings 3×10', 'Wall Slides 3×12', 'Cross-Body Stretch 3×30s', 'Scapular Retractions 3×15', 'Chin Tucks 3×10'] },
+    { day: 'Phase 2 – Rotator Cuff Strengthening', exercises: ['Band External Rotation 3×15', 'Band Internal Rotation 3×15', 'Y-T-W Raises 3×10', 'Serratus Punches 3×12', 'Face Pulls 3×15'] },
+    { day: 'Phase 3 – Functional Strength', exercises: ['DB Press (light) 3×10', 'Cable Rows 3×12', 'Lateral Raises 3×12', 'Arnold Press 3×10', 'Push-Up Plus 3×12'] },
+  ],
+  'Lower Back': [
+    { day: 'Phase 1 – Acute Care', exercises: ['Pelvic Tilts 3×12', 'Knee-to-Chest Stretch 3×30s', 'Cat-Cow 3×10', 'Supine Spinal Twist 3×30s', 'Diaphragmatic Breathing 5min'] },
+    { day: 'Phase 2 – Core Stability', exercises: ['Dead Bug 3×10', 'Bird Dog 3×10', 'Glute Bridges 3×15', 'Side Plank 3×20s', 'Pallof Press 3×12'] },
+    { day: 'Phase 3 – Functional Movement', exercises: ['Romanian Deadlift (light) 3×10', 'Goblet Squat 3×12', 'Suitcase Carry 3×30m', 'McGill Curl-Up 3×10', 'Hip Hinge Practice 3×10'] },
+  ],
+  'Hip': [
+    { day: 'Phase 1 – Mobility & Activation', exercises: ['Hip 90-90 Stretch 3×30s', 'Pigeon Pose 3×45s', 'Hip Flexor Stretch 3×30s', 'Clamshells 3×12', 'Supine Hip Rotations 3×10'] },
+    { day: 'Phase 2 – Strengthening', exercises: ['Glute Bridges 3×15', 'Side-Lying Hip Abduction 3×12', 'Step-Ups 3×10', 'Lateral Band Walks 3×15', 'Single Leg Balance 3×30s'] },
+    { day: 'Phase 3 – Functional Loading', exercises: ['Hip Thrusts 3×12', 'Bulgarian Split Squat 3×10', 'Single Leg RDL 3×10', 'Monster Walks 3×15', 'Reverse Lunges 3×10'] },
+  ],
+  'Ankle & Foot': [
+    { day: 'Phase 1 – Mobility & RICE', exercises: ['Ankle Circles 3×10', 'Alphabet Tracing (foot) 2×1', 'Towel Scrunches 3×15', 'Calf Stretch 3×30s', 'Plantar Fascia Stretch 3×30s'] },
+    { day: 'Phase 2 – Strength & Balance', exercises: ['Calf Raises 3×15', 'Single Leg Calf Raises 3×12', 'Heel Walks 3×20 steps', 'Toe Walks 3×20 steps', 'Single Leg Balance 3×30s'] },
+    { day: 'Phase 3 – Dynamic Stability', exercises: ['Single Leg Balance on Foam 3×30s', 'Lateral Hops (small) 3×10', 'Heel-to-Toe Walk 3×10m', 'Step-Downs 3×10', 'Jump Rope (easy) 3×30s'] },
+  ],
+  'Neck': [
+    { day: 'Phase 1 – Pain Relief', exercises: ['Chin Tucks 3×10', 'Neck Lateral Stretch 3×30s', 'Neck Rotation Stretch 3×30s', 'Shoulder Rolls 3×10', 'Upper Trap Stretch 3×30s'] },
+    { day: 'Phase 2 – Strengthening', exercises: ['Isometric Neck Flexion 3×10s', 'Isometric Neck Extension 3×10s', 'Isometric Lateral Flexion 3×10s', 'Scapular Squeezes 3×15', 'Band Pull-Aparts 3×12'] },
+    { day: 'Phase 3 – Functional', exercises: ['Deep Neck Flexor Training 3×10', 'Thoracic Extension 3×10', 'Face Pulls 3×15', 'Posture Walk 3×1min', 'Foam Roll Thoracic Spine'] },
+  ],
+  'Wrist & Elbow': [
+    { day: 'Phase 1 – Mobility', exercises: ['Wrist Circles 3×10', 'Prayer Stretch 3×30s', 'Reverse Prayer Stretch 3×30s', 'Forearm Stretch 3×30s', 'Grip Squeeze 3×15'] },
+    { day: 'Phase 2 – Strengthening', exercises: ['Wrist Curls 3×15', 'Reverse Wrist Curls 3×15', 'Hammer Curls (light) 3×12', 'Pronation & Supination 3×12', 'Finger Extensions 3×15'] },
+    { day: 'Phase 3 – Functional Load', exercises: ['Push-Up on Fists 3×10', 'Farmer Carry (light) 3×30m', 'Cable Rows 3×12', 'Plate Pinch 3×20s', 'Reverse Curls 3×12'] },
+  ],
 };
 
 const QUESTIONS = [
   { key: 'name', label: "What's your name?", placeholder: 'Enter your name', type: 'text' },
-  { key: 'goal', label: 'What is your fitness goal?', type: 'choice', options: ['Lose Weight', 'Build Muscle', 'General Fitness'] },
-  { key: 'level', label: 'What is your experience level?', type: 'choice', options: ['Beginner', 'Intermediate', 'Advanced'] },
-  { key: 'days', label: 'How many days per week can you train?', type: 'choice', options: ['1', '2', '3', '4', '5', '6'] },
+  { key: 'goal', label: 'What are you looking to do?', type: 'choice', options: ['Build Muscle', 'Nutrition Plan', 'Physical Therapy'] },
 ];
 
 // Module-level cache so images aren't re-fetched across re-renders
@@ -368,6 +248,24 @@ function LogModal({ visible, exercise, onSave, onCancel }) {
   );
 }
 
+function calculateTDEE(age, gender, heightFt, heightIn, weightLbs, activityLevel) {
+  const totalInches = parseFloat(heightFt) * 12 + parseFloat(heightIn);
+  const heightCm = totalInches * 2.54;
+  const weightKg = parseFloat(weightLbs) * 0.453592;
+  const a = parseFloat(age);
+  const bmr = gender === 'Male'
+    ? 10 * weightKg + 6.25 * heightCm - 5 * a + 5
+    : 10 * weightKg + 6.25 * heightCm - 5 * a - 161;
+  const multipliers = {
+    'Sedentary': 1.2,
+    'Lightly Active': 1.375,
+    'Moderately Active': 1.55,
+    'Very Active': 1.725,
+    'Extra Active': 1.9,
+  };
+  return Math.round(bmr * multipliers[activityLevel]);
+}
+
 export default function Root() {
   const [textVal, setTextVal] = useState('');
   const [step, setStep] = useState(0);
@@ -379,6 +277,8 @@ export default function Root() {
   const [logs, setLogs] = useState({});
   const [logModalVisible, setLogModalVisible] = useState(false);
   const [loggingExercise, setLoggingExercise] = useState(null);
+  const [nutritionForm, setNutritionForm] = useState({ age: '', gender: '', heightFt: '', heightIn: '', weight: '', activityLevel: '' });
+  const [nutritionResult, setNutritionResult] = useState(null);
 
   function logKey(dayTitle, exercise) {
     return `${dayTitle}|${exercise}`;
@@ -390,15 +290,21 @@ export default function Root() {
     setAnswers(updated);
     setTextVal('');
 
+    if (key === 'goal' && value === 'Nutrition Plan') {
+      setScreen('nutrition');
+      return;
+    }
+    if (key === 'goal' && value === 'Physical Therapy') {
+      setScreen('physicalTherapy');
+      return;
+    }
+    if (key === 'goal' && value === 'Build Muscle') {
+      setPlan(WORKOUT_PLANS['Build Muscle']);
+      setScreen('plan');
+      return;
+    }
     if (step < QUESTIONS.length - 1) {
       setStep(step + 1);
-    } else {
-      const goalPlan = WORKOUT_PLANS[updated.goal]?.[updated.level];
-      if (goalPlan) {
-        const closestDay = getClosestDays(goalPlan, parseInt(updated.days));
-        setPlan(goalPlan[closestDay]);
-        setScreen('plan');
-      }
     }
   }
 
@@ -411,6 +317,19 @@ export default function Root() {
     setSelectedDay(null);
     setSelectedExercise(null);
     setLogs({});
+    setNutritionForm({ age: '', gender: '', heightFt: '', heightIn: '', weight: '', activityLevel: '' });
+    setNutritionResult(null);
+  }
+
+  function submitNutrition() {
+    const { age, gender, heightFt, heightIn, weight, activityLevel } = nutritionForm;
+    if (!age || !gender || !heightFt || !weight || !activityLevel) return;
+    const tdee = calculateTDEE(age, gender, heightFt, heightIn || '0', weight, activityLevel);
+    const cut = tdee - 500;
+    const bulk = tdee + 300;
+    const proteinG = Math.round(parseFloat(weight));
+    setNutritionResult({ tdee, cut, bulk, proteinG, weight: parseFloat(weight) });
+    setScreen('nutritionResults');
   }
 
   function openLogModal(exercise) {
@@ -431,6 +350,11 @@ export default function Root() {
   if (screen === 'quiz') {
     return (
       <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        {step > 0 && (
+          <TouchableOpacity onPress={() => setStep(step - 1)} style={styles.backBtn}>
+            <Text style={styles.backText}>‹ Back</Text>
+          </TouchableOpacity>
+        )}
         <Text style={styles.title}>Workout Tracker</Text>
         <View style={styles.progress}>
           {QUESTIONS.map((_, i) => (
@@ -469,12 +393,202 @@ export default function Root() {
     );
   }
 
-  // ── Plan Overview Screen ─────────────────────────────────
-  if (screen === 'plan') {
+  // ── Nutrition Input Screen ────────────────────────────────
+  if (screen === 'nutrition') {
+    const activityOptions = ['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active', 'Extra Active'];
+    const allFilled = nutritionForm.age && nutritionForm.gender && nutritionForm.heightFt && nutritionForm.weight && nutritionForm.activityLevel;
+    return (
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+          <TouchableOpacity onPress={() => { setStep(1); setScreen('quiz'); }} style={styles.backBtn}>
+            <Text style={styles.backText}>‹ Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>Nutrition Plan</Text>
+          <Text style={styles.subtitle}>Tell us about yourself</Text>
+
+          <View style={styles.questionCard}>
+            <Text style={[styles.sectionLabel, { textAlign: 'center', marginBottom: 16 }]}>TDEE Calculator</Text>
+            <Text style={styles.fieldLabel}>Age</Text>
+            <TextInput style={styles.input} placeholder="e.g. 25" placeholderTextColor={COLORS.muted}
+              keyboardType="number-pad" value={nutritionForm.age}
+              onChangeText={v => setNutritionForm(f => ({ ...f, age: v }))} />
+
+            <Text style={styles.fieldLabel}>Gender</Text>
+            <View style={styles.choices}>
+              {['Male', 'Female'].map(g => (
+                <TouchableOpacity key={g} style={[styles.choiceBtn, nutritionForm.gender === g && styles.choiceBtnActive]}
+                  onPress={() => setNutritionForm(f => ({ ...f, gender: g }))}>
+                  <Text style={styles.choiceText}>{g}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.fieldLabel, { marginTop: 16 }]}>Height</Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TextInput style={[styles.input, { flex: 1 }]} placeholder="ft" placeholderTextColor={COLORS.muted}
+                keyboardType="number-pad" value={nutritionForm.heightFt}
+                onChangeText={v => setNutritionForm(f => ({ ...f, heightFt: v }))} />
+              <TextInput style={[styles.input, { flex: 1 }]} placeholder="in" placeholderTextColor={COLORS.muted}
+                keyboardType="number-pad" value={nutritionForm.heightIn}
+                onChangeText={v => setNutritionForm(f => ({ ...f, heightIn: v }))} />
+            </View>
+
+            <Text style={styles.fieldLabel}>Body Weight (lbs)</Text>
+            <TextInput style={styles.input} placeholder="e.g. 180" placeholderTextColor={COLORS.muted}
+              keyboardType="decimal-pad" value={nutritionForm.weight}
+              onChangeText={v => setNutritionForm(f => ({ ...f, weight: v }))} />
+
+            <Text style={styles.fieldLabel}>Activity Level</Text>
+            <View style={styles.choices}>
+              {activityOptions.map(a => (
+                <TouchableOpacity key={a} style={[styles.choiceBtn, nutritionForm.activityLevel === a && styles.choiceBtnActive]}
+                  onPress={() => setNutritionForm(f => ({ ...f, activityLevel: a }))}>
+                  <Text style={styles.choiceText}>{a}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity style={[styles.button, { marginTop: 20, opacity: allFilled ? 1 : 0.4 }]}
+              onPress={submitNutrition} disabled={!allFilled}>
+              <Text style={styles.buttonText}>Calculate</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelBtn} onPress={restart}>
+              <Text style={styles.cancelText}>Start Over</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // ── Nutrition Results Screen ──────────────────────────────
+  if (screen === 'nutritionResults' && nutritionResult) {
+    const { tdee, cut, bulk, proteinG } = nutritionResult;
+    const fatCutG = Math.round((cut * 0.25) / 9);
+    const carbCutG = Math.round((cut - proteinG * 4 - fatCutG * 9) / 4);
+    const fatBulkG = Math.round((bulk * 0.25) / 9);
+    const carbBulkG = Math.round((bulk - proteinG * 4 - fatBulkG * 9) / 4);
+    const fatMainG = Math.round((tdee * 0.25) / 9);
+    const carbMainG = Math.round((tdee - proteinG * 4 - fatMainG * 9) / 4);
+
+    const meals = [
+      { name: 'Breakfast', pct: 0.25, foods: ['Eggs or egg whites', 'Oats or whole grain toast', 'Greek yogurt or cottage cheese', 'Fruit'] },
+      { name: 'Mid-Morning Snack', pct: 0.10, foods: ['Protein shake', 'Rice cakes with peanut butter', 'Apple or banana'] },
+      { name: 'Lunch', pct: 0.25, foods: ['Chicken breast, tuna, or lean beef', 'Brown rice or sweet potato', 'Vegetables & salad', 'Olive oil dressing'] },
+      { name: 'Pre-Workout', pct: 0.15, foods: ['Oats with protein powder', 'Banana', 'Light carb source'] },
+      { name: 'Post-Workout / Dinner', pct: 0.20, foods: ['Lean protein (chicken, fish, steak)', 'White or brown rice', 'Broccoli or green vegetables'] },
+      { name: 'Evening Snack', pct: 0.05, foods: ['Casein protein or cottage cheese', 'Almonds or walnuts'] },
+    ];
+
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Your Workout Plan</Text>
-        <Text style={styles.subtitle}>{answers.name}'s {answers.goal} Plan · {answers.level}</Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+          <TouchableOpacity onPress={() => setScreen('nutrition')} style={styles.backBtn}>
+            <Text style={styles.backText}>‹ Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>Your Nutrition Plan</Text>
+          <Text style={styles.subtitle}>{answers.name} · {nutritionForm.weight} lbs · {nutritionForm.activityLevel}</Text>
+
+          {/* TDEE Cards */}
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{tdee}</Text>
+              <Text style={styles.statLabel}>TDEE (kcal)</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={[styles.statValue, { color: COLORS.accent }]}>{cut}</Text>
+              <Text style={styles.statLabel}>Cut (kcal)</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={[styles.statValue, { color: COLORS.success }]}>{bulk}</Text>
+              <Text style={styles.statLabel}>Bulk (kcal)</Text>
+            </View>
+          </View>
+
+          {/* Macros Table */}
+          <View style={styles.chartContainer}>
+            <Text style={styles.chartTitle}>Daily Macros Breakdown</Text>
+            <View style={[styles.tableRow, styles.tableHeaderRow]}>
+              <Text style={[styles.tableCell, styles.tableHeaderCell, { flex: 2, textAlign: 'left' }]}>Goal</Text>
+              <Text style={[styles.tableCell, styles.tableHeaderCell, { flex: 2 }]}>Protein</Text>
+              <Text style={[styles.tableCell, styles.tableHeaderCell, { flex: 2 }]}>Carbs</Text>
+              <Text style={[styles.tableCell, styles.tableHeaderCell, { flex: 2 }]}>Fat</Text>
+            </View>
+            {[
+              { label: 'Maintain', protein: proteinG, carbs: carbMainG, fat: fatMainG },
+              { label: 'Cut', protein: proteinG, carbs: carbCutG, fat: fatCutG },
+              { label: 'Bulk', protein: proteinG, carbs: carbBulkG, fat: fatBulkG },
+            ].map((row, i) => (
+              <View key={i} style={[styles.tableRow, i % 2 === 0 && styles.tableRowAlt]}>
+                <Text style={[styles.tableCell, { flex: 2, textAlign: 'left' }]}>{row.label}</Text>
+                <Text style={[styles.tableCell, { flex: 2, color: COLORS.accent }]}>{row.protein}g</Text>
+                <Text style={[styles.tableCell, { flex: 2 }]}>{row.carbs}g</Text>
+                <Text style={[styles.tableCell, { flex: 2 }]}>{row.fat}g</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Meal Plan */}
+          <Text style={[styles.sectionLabel, { marginBottom: 10 }]}>Bodybuilding Meal Plan</Text>
+          {meals.map((meal, i) => (
+            <View key={i} style={styles.card}>
+              <View style={styles.cardRow}>
+                <Text style={styles.dayTitle}>{meal.name}</Text>
+                <Text style={styles.exerciseCount}>{Math.round(tdee * meal.pct)} kcal</Text>
+              </View>
+              {meal.foods.map((f, j) => (
+                <Text key={j} style={styles.mealFood}>· {f}</Text>
+              ))}
+            </View>
+          ))}
+
+          <TouchableOpacity style={[styles.button, { marginTop: 8 }]} onPress={restart}>
+            <Text style={styles.buttonText}>Start Over</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // ── Physical Therapy Screen ───────────────────────────────
+  if (screen === 'physicalTherapy') {
+    const bodyParts = Object.keys(PT_PLANS);
+    return (
+      <View style={styles.container}>
+        <TouchableOpacity onPress={() => { setStep(1); setScreen('quiz'); }} style={styles.backBtn}>
+          <Text style={styles.backText}>‹ Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>Physical Therapy</Text>
+        <Text style={styles.subtitle}>Select the area you want to work on</Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+          {bodyParts.map(part => (
+            <TouchableOpacity key={part} style={styles.card} onPress={() => {
+              setPlan(PT_PLANS[part]);
+              setAnswers(a => ({ ...a, ptBodyPart: part }));
+              setScreen('plan');
+            }}>
+              <View style={styles.cardRow}>
+                <Text style={styles.dayTitle}>{part}</Text>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+              <Text style={styles.exerciseCount}>{PT_PLANS[part].length} phases</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // ── Plan Overview Screen ─────────────────────────────────
+  if (screen === 'plan') {
+    const isPT = answers.goal === 'Physical Therapy';
+    return (
+      <View style={styles.container}>
+        <TouchableOpacity onPress={() => isPT ? setScreen('physicalTherapy') : restart()} style={styles.backBtn}>
+          <Text style={styles.backText}>‹ Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>{isPT ? `${answers.ptBodyPart} Rehab` : 'Your Workout Plan'}</Text>
+        <Text style={styles.subtitle}>{isPT ? answers.name : answers.goal === 'Build Muscle' ? `${answers.name}'s Build Muscle Plan` : `${answers.name}'s ${answers.goal} Plan · ${answers.level}`}</Text>
         <FlatList
           data={plan}
           keyExtractor={(_, i) => i.toString()}
@@ -487,11 +601,6 @@ export default function Root() {
               <Text style={styles.exerciseCount}>{item.exercises.length} exercises</Text>
             </TouchableOpacity>
           )}
-          ListFooterComponent={
-            <TouchableOpacity style={[styles.button, { marginTop: 8, marginBottom: 40 }]} onPress={restart}>
-              <Text style={styles.buttonText}>Start Over</Text>
-            </TouchableOpacity>
-          }
         />
       </View>
     );
@@ -713,7 +822,12 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: 'center',
   },
+  choiceBtnActive: {
+    backgroundColor: COLORS.accent,
+  },
   choiceText: { color: COLORS.text, fontSize: 16 },
+  fieldLabel: { color: COLORS.muted, fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 4 },
+  mealFood: { color: COLORS.muted, fontSize: 13, marginTop: 4, paddingLeft: 4 },
   card: {
     backgroundColor: COLORS.card,
     borderRadius: 12,
