@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Image,
@@ -31,7 +30,7 @@ function buildPlan(days) { return days; }
 const WORKOUT_PLANS = {
   'Build Muscle': buildPlan([
     { day: 'Sunday – Rest', exercises: ['Full Body Stretching 15min', 'Foam Roll', 'Deep Breathing 5min'] },
-    { day: 'Monday – Upper Body', exercises: ['Bench Press 4×8', 'Barbell Rows 4×8', 'OHP 3×10', 'Pull-Ups 3×8', 'Bicep Curls 3×12', 'Tricep Pushdowns 3×12'] },
+    { day: 'Monday – Upper Body', exercises: ['Incline Bench', 'Seated Cable Fly', 'Weighted Pull Ups', 'Cable Side Lateral Raise', 'Deficit Pendlay Row'] },
     { day: 'Tuesday – Lower Body', exercises: ['Back Squat 4×8', 'Romanian Deadlift 3×10', 'Leg Press 3×12', 'Leg Curls 3×12', 'Calf Raises 4×20'] },
     { day: 'Wednesday – Rest', exercises: ['Full Body Stretching 15min', 'Foam Roll', 'Deep Breathing 5min'] },
     { day: 'Thursday – Push Day', exercises: ['Bench Press 4×8', 'Incline DB Press 3×10', 'OHP 4×8', 'Lateral Raises 3×15', 'Tricep Dips 3×12', 'Cable Flys 3×12'] },
@@ -83,8 +82,64 @@ const QUESTIONS = [
   { key: 'goal', label: 'What are you looking to do?', type: 'choice', options: ['Build Muscle', 'Nutrition Plan', 'Physical Therapy'] },
 ];
 
-// Module-level cache so images aren't re-fetched across re-renders
-const imageCache = {};
+const EXERCISE_NOTES = {
+  'Incline Bench':          'Keep shoulder blades pinched and depressed. Drive feet into the floor. Lower the bar to upper chest, elbows at ~60°.',
+  'Seated Cable Fly':       'Slight bend in elbows throughout. Lead with your elbows, not your hands. Squeeze the chest at the peak contraction.',
+  'Weighted Pull Ups':      'Start from a dead hang. Pull elbows down and back toward your hips. Avoid shrugging — keep shoulders packed down.',
+  'Cable Side Lateral Raise': 'Slight forward lean. Lead with your elbow, not your wrist. Pause briefly at shoulder height before controlled lowering.',
+  'Deficit Pendlay Row':    'Bar starts on the floor each rep. Flat back, horizontal torso. Explosively row to lower chest, focusing on upper back contraction.',
+  'Bench Press':            'Arch naturally, feet flat. Bar path slightly diagonal — touch lower chest, press back toward the rack.',
+  'Overhead Press':         'Brace core and glutes. Bar travels in a straight line — move your head back as bar passes, then forward again.',
+  'Pull-Ups':               'Full dead hang at the bottom. Drive elbows down toward your pockets. Chin clears the bar at the top.',
+  'Bicep Curls':            'Keep elbows pinned at your sides. Supinate at the top. Lower slowly for maximum stretch.',
+  'Tricep Pushdowns':       'Elbows locked at your sides. Full extension at the bottom, don\'t let elbows flare on the way up.',
+  'Back Squat':             'Brace 360°, chest tall. Break at hips and knees simultaneously. Drive knees out over toes throughout.',
+  'Romanian Deadlift':      'Hinge at the hips, slight knee bend. Feel the hamstring stretch before driving hips forward to stand.',
+  'Leg Press':              'Feet shoulder-width, toes slightly out. Lower until hips start to tuck. Press through the full foot.',
+  'Leg Curls':              'Avoid lifting your hips off the pad. Curl to full contraction and lower with control for a full stretch.',
+  'Calf Raises':            'Full range of motion — stretch at the bottom, pause and squeeze hard at the top.',
+  'Incline Dumbbell Press': 'Slight incline (30–45°). Keep wrists stacked over elbows. Feel the stretch at the bottom, press and squeeze at the top.',
+  'Lateral Raises':         'Slight forward lean. Lead with elbows. Pinky slightly higher than thumb at the top.',
+  'Tricep Dips':            'Lean slightly forward for chest emphasis, stay upright for triceps. Lower until elbows hit 90°.',
+  'Cable Flys':             'Slight bend in elbows. Focus on the stretch at the start and a full squeeze at the finish.',
+  'Deadlift':               'Push the floor away to initiate. Keep bar close to body. Lock out hips and knees simultaneously at the top.',
+  'Cable Rows':             'Sit tall, pull to lower sternum. Squeeze shoulder blades together at the end. Don\'t let shoulders roll forward on the return.',
+  'Face Pulls':             'Pull to forehead level, elbows flared high. External rotate at the end — thumbs pointing behind you.',
+  'Barbell Curls':          'Keep elbows pinned. Supinate at the top for peak contraction. 3-second negative for max tension.',
+  'Hammer Curls':           'Neutral grip throughout. Trains brachialis and brachioradialis. Keep elbows tucked, avoid swinging.',
+  'Front Squat':            'Elbows high, upright torso. Knees track over toes. Keep core braced to maintain the front rack position.',
+  'Nordic Curls':           'Brace and lower as slowly as possible. Use your hands to catch yourself. Pull yourself back with hamstrings on the way up.',
+};
+
+// Add your images to assets/exercises/ and replace null with require('./assets/exercises/filename.jpg')
+const EXERCISE_IMAGES = {
+  'Incline Bench': require('./assets/exercises/incline-bench.jpg'), // incline-bench.jpg
+  'Seated Cable Fly': require('./assets/exercises/seated-cable-fly.jpg'), // seated-cable-fly.jpg
+  'Weighted Pull Ups': require('./assets/exercises/weighted-pull-ups.jpg'), // weighted-pull-ups.jpg
+  'Cable Side Lateral Raise': require('./assets/exercises/cable-side-lateral-raise.jpg'), // cable-side-lateral-raise.jpg
+  'Deficit Pendlay Row': require('./assets/exercises/deficit-pendlay-row.jpg'), // deficit-pendlay-row.jpg
+  'Bench Press':            null, // bench-press.jpg
+  'Overhead Press':         null, // overhead-press.jpg (OHP)
+  'Pull-Ups':               null, // pull-ups.jpg
+  'Bicep Curls':            null, // bicep-curls.jpg
+  'Tricep Pushdowns':       null, // tricep-pushdowns.jpg
+  'Back Squat':             null, // back-squat.jpg
+  'Romanian Deadlift':      null, // romanian-deadlift.jpg
+  'Leg Press':              null, // leg-press.jpg
+  'Leg Curls':              null, // leg-curls.jpg
+  'Calf Raises':            null, // calf-raises.jpg
+  'Incline Dumbbell Press': null, // incline-dumbbell-press.jpg
+  'Lateral Raises':         null, // lateral-raises.jpg
+  'Tricep Dips':            null, // tricep-dips.jpg
+  'Cable Flys':             null, // cable-flys.jpg
+  'Deadlift':               null, // deadlift.jpg
+  'Cable Rows':             null, // cable-rows.jpg
+  'Face Pulls':             null, // face-pulls.jpg
+  'Barbell Curls':          null, // barbell-curls.jpg (EZ Bar Curls)
+  'Hammer Curls':           null, // hammer-curls.jpg
+  'Front Squat':            null, // front-squat.jpg
+  'Nordic Curls':           null, // nordic-curls.jpg
+};
 
 function cleanExerciseName(name) {
   return name
@@ -112,63 +167,36 @@ function getExerciseEmoji(name) {
 }
 
 function ExerciseImage({ exerciseName }) {
-  const [uri, setUri] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const mounted = useRef(true);
-
-  useEffect(() => {
-    mounted.current = true;
-    const clean = cleanExerciseName(exerciseName);
-
-    if (imageCache[clean] !== undefined) {
-      setUri(imageCache[clean]);
-      setLoading(false);
-      return;
-    }
-
-    (async () => {
-      try {
-        const searchRes = await fetch(
-          `https://wger.de/api/v2/exercise/?format=json&language=2&name=${encodeURIComponent(clean)}&limit=5`
-        );
-        const searchData = await searchRes.json();
-        if (searchData.results?.length > 0) {
-          const baseId = searchData.results[0].exercise_base;
-          const imgRes = await fetch(
-            `https://wger.de/api/v2/exerciseimage/?format=json&exercise_base=${baseId}&limit=1`
-          );
-          const imgData = await imgRes.json();
-          const found = imgData.results?.[0]?.image ?? null;
-          imageCache[clean] = found;
-          if (mounted.current) setUri(found);
-        } else {
-          imageCache[clean] = null;
-        }
-      } catch {
-        imageCache[clean] = null;
-      } finally {
-        if (mounted.current) setLoading(false);
-      }
-    })();
-
-    return () => { mounted.current = false; };
-  }, [exerciseName]);
-
-  if (loading) {
-    return (
-      <View style={styles.exImgBox}>
-        <ActivityIndicator size="small" color={COLORS.accent} />
-      </View>
-    );
-  }
-  if (!uri) {
+  const [enlarged, setEnlarged] = useState(false);
+  const source = EXERCISE_IMAGES[cleanExerciseName(exerciseName)] ?? null;
+  if (!source) {
     return (
       <View style={styles.exImgBox}>
         <Text style={styles.exImgEmoji}>{getExerciseEmoji(exerciseName)}</Text>
       </View>
     );
   }
-  return <Image source={{ uri }} style={styles.exImg} resizeMode="contain" />;
+  const clean = cleanExerciseName(exerciseName);
+  return (
+    <>
+      <TouchableOpacity onPress={() => setEnlarged(true)}>
+        <Image source={source} style={styles.exImg} resizeMode="cover" />
+      </TouchableOpacity>
+      <Modal visible={enlarged} transparent animationType="fade">
+        <TouchableOpacity style={styles.imgModalOverlay} onPress={() => setEnlarged(false)} activeOpacity={1}>
+          <View style={styles.imgModalCard}>
+            <Image source={source} style={styles.imgModalFull} resizeMode="stretch" />
+            <View style={styles.imgModalTextBox}>
+              <Text style={styles.imgModalTitle}>{clean}</Text>
+              {EXERCISE_NOTES[clean] && (
+                <Text style={styles.imgModalNotes}>{EXERCISE_NOTES[clean]}</Text>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
 }
 
 function BarChart({ data }) {
@@ -848,9 +876,9 @@ const styles = StyleSheet.create({
   },
   exerciseCardTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 },
   exerciseCardInfo: { flex: 1 },
-  exImgBox: { width: 80, height: 60, borderRadius: 8, backgroundColor: COLORS.input, justifyContent: 'center', alignItems: 'center' },
-  exImgEmoji: { fontSize: 28 },
-  exImg: { width: 80, height: 60, borderRadius: 8 },
+  exImgBox: { width: 150, height: 90, borderRadius: 8, backgroundColor: COLORS.input, justifyContent: 'center', alignItems: 'center' },
+  exImgEmoji: { fontSize: 36 },
+  exImg: { width: 150, height: 90, borderRadius: 8, overflow: 'hidden' },
   progressImgRow: { alignItems: 'center', marginBottom: 16 },
   progressHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
   title2: { fontSize: 18, fontWeight: 'bold', color: COLORS.text },
@@ -950,4 +978,10 @@ const styles = StyleSheet.create({
   logWeek: { color: COLORS.muted, fontSize: 14 },
   logWeight: { color: COLORS.text, fontWeight: 'bold', fontSize: 14 },
   sectionLabel: { color: COLORS.text, fontWeight: 'bold', fontSize: 15, marginBottom: 8 },
+  imgModalOverlay: { flex: 1, backgroundColor: '#000000ee', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  imgModalCard: { width: '100%', borderRadius: 12, overflow: 'hidden' },
+  imgModalFull: { width: '100%', height: 250 },
+  imgModalTextBox: { backgroundColor: '#ffffff', padding: 12 },
+  imgModalTitle: { color: '#000000', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  imgModalNotes: { color: '#333333', fontSize: 13, lineHeight: 19 },
 });
