@@ -32,7 +32,7 @@ const WORKOUT_PLANS = {
   'Build Muscle': buildPlan([
     { day: 'Sunday – Rest', exercises: ['Full Body Stretching 15min', 'Foam Roll', 'Deep Breathing 5min'] },
     { day: 'Monday – Upper Body', exercises: ['Incline Bench', 'Seated Cable Fly', 'Weighted Pull Ups', 'Cable Side Lateral Raise', 'Deficit Pendlay Row'] },
-    { day: 'Tuesday – Lower Body', exercises: ['Back Squat 4×8', 'Romanian Deadlift 3×10', 'Leg Press 3×12', 'Leg Curls 3×12', 'Calf Raises 4×20'] },
+    { day: 'Tuesday – Lower Body', exercises: ['Lying Leg Curl 2×8', 'Back Squat 3×6', 'Romanian Deadlift 3×6', 'Leg Extension 2×10', 'Hip Abduction 2×10', 'Standing Calf Raise 3×10'] },
     { day: 'Wednesday – Rest', exercises: ['Full Body Stretching 15min', 'Foam Roll', 'Deep Breathing 5min'] },
     { day: 'Thursday – Push Day', exercises: ['Bench Press 4×8', 'Incline DB Press 3×10', 'OHP 4×8', 'Lateral Raises 3×15', 'Tricep Dips 3×12', 'Cable Flys 3×12'] },
     { day: 'Friday – Pull Day', exercises: ['Deadlift 4×5', 'Pull-Ups 4×8', 'Cable Rows 4×10', 'Face Pulls 3×15', 'EZ Bar Curls 4×10', 'Hammer Curls 3×12'] },
@@ -96,7 +96,11 @@ const EXERCISE_NOTES = {
   'Tricep Pushdowns':       'Elbows locked at your sides. Full extension at the bottom, don\'t let elbows flare on the way up.',
   'Back Squat':             'Brace 360°, chest tall. Break at hips and knees simultaneously. Drive knees out over toes throughout.',
   'Romanian Deadlift':      'Hinge at the hips, slight knee bend. Feel the hamstring stretch before driving hips forward to stand.',
+  'Standing Calf Raise':    'Stand with the balls of your feet on the edge of the platform. Lower into a full stretch, then drive up onto your toes and squeeze hard at the top. Control the descent — don\'t bounce at the bottom.',
+  'Hip Abduction':          'Sit tall with back against the pad. Push knees outward against the pads in a controlled motion. Squeeze the glutes at peak contraction and return slowly — don\'t let the weight slam back.',
+  'Leg Extension':          'Sit tall with back against the pad. Extend to full lockout and squeeze the quad at the top. Lower slowly — don\'t let the weight drop.',
   'Leg Press':              'Feet shoulder-width, toes slightly out. Lower until hips start to tuck. Press through the full foot.',
+  'Lying Leg Curl':         'Keep hips pressed into the pad throughout. Curl to full contraction, pause briefly, then lower slowly for a full hamstring stretch.',
   'Leg Curls':              'Avoid lifting your hips off the pad. Curl to full contraction and lower with control for a full stretch.',
   'Calf Raises':            'Full range of motion — stretch at the bottom, pause and squeeze hard at the top.',
   'Incline Dumbbell Press': 'Slight incline (30–45°). Keep wrists stacked over elbows. Feel the stretch at the bottom, press and squeeze at the top.',
@@ -124,10 +128,13 @@ const EXERCISE_IMAGES = {
   'Pull-Ups':               null, // pull-ups.jpg
   'Bicep Curls':            null, // bicep-curls.jpg
   'Tricep Pushdowns':       null, // tricep-pushdowns.jpg
-  'Back Squat':             null, // back-squat.jpg
-  'Romanian Deadlift':      null, // romanian-deadlift.jpg
+  'Back Squat': require('./assets/exercises/Tues Lower Body/back-squat.jpg'), // back-squat.jpg
+  'Romanian Deadlift': require('./assets/exercises/Tues Lower Body/romanian-deadlift.jpg'),
   'Leg Press':              null, // leg-press.jpg
-  'Leg Curls':              null, // leg-curls.jpg
+  'Leg Extension': require('./assets/exercises/Tues Lower Body/leg-extension.jpg'),
+  'Hip Abduction': require('./assets/exercises/Tues Lower Body/hip-abduction.jpg'),
+  'Standing Calf Raise': require('./assets/exercises/Tues Lower Body/standing-calf-raise.jpg'),
+  'Lying Leg Curl': require('./assets/exercises/Tues Lower Body/lying-leg-curl.jpg'),
   'Calf Raises':            null, // calf-raises.jpg
   'Incline Dumbbell Press': null, // incline-dumbbell-press.jpg
   'Lateral Raises':         null, // lateral-raises.jpg
@@ -169,6 +176,7 @@ function getExerciseEmoji(name) {
 
 function ExerciseImage({ exerciseName }) {
   const [enlarged, setEnlarged] = useState(false);
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const source = EXERCISE_IMAGES[cleanExerciseName(exerciseName)] ?? null;
   if (!source) {
     return (
@@ -178,7 +186,6 @@ function ExerciseImage({ exerciseName }) {
     );
   }
   const clean = cleanExerciseName(exerciseName);
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const info = Image.resolveAssetSource(source);
   const aspectRatio = info && info.width && info.height ? info.width / info.height : 4 / 3;
   const cardWidth = screenWidth - 40;
