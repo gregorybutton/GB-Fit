@@ -14,6 +14,7 @@ import {
   TextInput,
   Switch,
   TouchableOpacity,
+  Vibration,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -194,6 +195,16 @@ const COMPOUND_KEYWORDS = ['bench', 'squat', 'deadlift', 'row', 'pull', 'press',
 function getRestSuggestion(exerciseName) {
   const n = cleanExerciseName(exerciseName).toLowerCase();
   return COMPOUND_KEYWORDS.some(k => n.includes(k)) ? 180 : 60;
+}
+
+function parseDurationToSecs(duration) {
+  const eachSide = duration.includes('each side');
+  const mins = duration.match(/(\d+)\s*min/);
+  const secs = duration.match(/(\d+)\s*sec/);
+  let total = 0;
+  if (mins) total += parseInt(mins[1]) * 60;
+  if (secs) total += parseInt(secs[1]);
+  return eachSide ? total * 2 : total;
 }
 
 function parseSetsReps(name) {
@@ -405,6 +416,8 @@ function Root() {
   const [restingForExercise, setRestingForExercise] = useState(null);
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [sessionSets, setSessionSets] = useState([]);
+  const [weightPickerVisible, setWeightPickerVisible] = useState(false);
+  const [weightPickerIndex, setWeightPickerIndex] = useState(null);
   const [authForm, setAuthForm] = useState({ name: '', email: 'gbutton11@hotmail.com', password: 'Unicycle12!', gender: '' });
   const [authError, setAuthError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -416,6 +429,8 @@ function Root() {
   const [settingsFrom, setSettingsFrom] = useState('plan');
   const [restTimerEnabled, setRestTimerEnabled] = useState(true);
   const [showDayComplete, setShowDayComplete] = useState(false);
+  const [showSwitchSides, setShowSwitchSides] = useState(false);
+  const [stretchEachSide, setStretchEachSide] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -455,6 +470,32 @@ function Root() {
     }, 1000);
     return () => clearInterval(interval);
   }, [restTimerRunning, restTimerRemaining]);
+
+  function playSound(type) {
+    if (type === 'switch') {
+      Vibration.vibrate([0, 150, 80, 150]);
+    } else {
+      Vibration.vibrate([0, 200, 100, 200, 100, 400]);
+    }
+  }
+
+  useEffect(() => {
+    if (!restTimerRunning || !stretchEachSide || restTimerDuration === 0) return;
+    const half = Math.floor(restTimerDuration / 2);
+    if (restTimerRemaining === half) {
+      setShowSwitchSides(true);
+      playSound('switch');
+      setTimeout(() => setShowSwitchSides(false), 2500);
+    }
+  }, [restTimerRemaining, restTimerRunning, stretchEachSide, restTimerDuration]);
+
+  useEffect(() => {
+    const isStretchDay = selectedDay?.day?.includes('Rest');
+    if (restTimerRemaining === 0 && !restTimerRunning && isStretchDay) {
+      playSound('complete');
+    }
+  }, [restTimerRemaining, restTimerRunning]);
+
 
   useEffect(() => {
     const CACHE_KEY = 'exerciseDbCache';
@@ -1155,7 +1196,7 @@ function Root() {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16 }}>
               <View style={{ flex: 1, paddingRight: 12 }}>
                 <Text style={{ color: COLORS.text, fontSize: 14 }}>Rest Timer</Text>
-                <Text style={{ color: COLORS.muted, fontSize: 12, marginTop: 2 }}>Auto-start rest timer after each set</Text>
+                <Text style={{ color: COLORS.muted, fontSize: 12, marginTop: 2 }}>Auto-start rest timer after each set (workouts only)</Text>
               </View>
               <Switch
                 value={restTimerEnabled}
@@ -1500,6 +1541,65 @@ function Root() {
           );
         })()}
 
+        {/* Stretch timer banner — rest days */}
+        {isRestDay && (() => {
+          const suggested = (restingForExercise && restingForExercise !== 'rest' && restTimerDuration > 0) ? restTimerDuration : 45;
+          const progressWidth = restTimerRunning ? `${(restTimerRemaining / restTimerDuration) * 100}%` : '0%';
+          return (
+            <View style={styles.restBanner}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+                <Text style={{ color: '#4ade80', fontSize: 10, fontWeight: '800', letterSpacing: 1.2 }}>⏻  STRETCH TIMER</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: 'bold', flex: 1, marginRight: 12 }} numberOfLines={1}>
+                  {restingForExercise && restingForExercise !== 'rest' ? restingForExercise : 'Forward Fold'}{' '}
+                  <Text style={{ color: '#4ade80' }}>
+                    {restTimerRunning ? `• ${formatTime(restTimerRemaining)}` : `• ${formatTime(suggested)}`}
+                  </Text>
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {restTimerRunning ? (
+                    <>
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#2a2a3e', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 }}
+                        onPress={() => setRestTimerRunning(false)}
+                      >
+                        <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600' }}>Pause</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#2a2a3e', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 }}
+                        onPress={() => { setRestTimerRunning(false); setRestTimerRemaining(restTimerDuration); }}
+                      >
+                        <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '600' }}>Reset</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#4ade80', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 7 }}
+                      onPress={() => {
+                        if (!restingForExercise || restingForExercise === 'rest') {
+                          setRestingForExercise('Forward Fold');
+                          setRestTimerDuration(45);
+                          setRestTimerRemaining(45);
+                          setStretchEachSide(false);
+                        } else {
+                          setRestTimerRemaining(restTimerDuration);
+                        }
+                        setRestTimerRunning(true);
+                      }}
+                    >
+                      <Text style={{ color: '#000', fontSize: 13, fontWeight: '700' }}>Start</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+              <View style={{ height: 3, backgroundColor: '#1a2a1a', borderRadius: 2 }}>
+                <View style={{ height: 3, backgroundColor: '#4ade80', borderRadius: 2, width: progressWidth }} />
+              </View>
+            </View>
+          );
+        })()}
+
         <View style={{ flex: 1 }}>
           <FlatList
             data={selectedDay.exercises}
@@ -1590,28 +1690,39 @@ function Root() {
                   {isFoamRolling && (
                     <View style={styles.stretchGrid}>
                       {foamRollingItems.map((s, i) => (
-                        <View key={i} style={styles.stretchItem}>
+                        <TouchableOpacity key={i} style={styles.stretchItem} onPress={() => {
+                          const secs = parseDurationToSecs(s.duration);
+                          setRestingForExercise(s.label);
+                          setRestTimerDuration(secs);
+                          setRestTimerRemaining(secs);
+                          setRestTimerRunning(false);
+                          setStretchEachSide(s.duration.includes('each side'));
+                        }}>
                           <Text style={styles.stretchEmoji}>{s.emoji}</Text>
                           <View style={{ flex: 1 }}>
                             <Text style={styles.stretchLabel}>{s.label}</Text>
                             <Text style={styles.stretchDuration}>{s.duration}</Text>
                           </View>
-                        </View>
+                        </TouchableOpacity>
                       ))}
                     </View>
                   )}
                   {isStretching && (
                     <View style={styles.stretchGrid}>
                       {stretchingItems.map((s, i) => (
-                        <View key={i} style={styles.stretchItem}>
-                          <TouchableOpacity onPress={() => setStretchImgModal(s)}>
-                            <Image source={s.img} style={styles.stretchImg} resizeMode="cover" />
-                          </TouchableOpacity>
+                        <TouchableOpacity key={i} style={styles.stretchItem} onPress={() => {
+                          const secs = parseDurationToSecs(s.duration);
+                          setRestingForExercise(s.label);
+                          setRestTimerDuration(secs);
+                          setRestTimerRemaining(secs);
+                          setRestTimerRunning(false);
+                          setStretchEachSide(s.duration.includes('each side'));
+                        }}>
                           <View style={{ flex: 1 }}>
                             <Text style={styles.stretchLabel}>{s.label}</Text>
                             <Text style={styles.stretchDuration}>{s.duration}</Text>
                           </View>
-                        </View>
+                        </TouchableOpacity>
                       ))}
                     </View>
                   )}
@@ -1634,6 +1745,17 @@ function Root() {
             </View>
           </TouchableOpacity>
         </Modal>
+
+        {/* Switch Sides Flash */}
+        <Modal visible={showSwitchSides} transparent animationType="fade">
+          <View style={{ flex: 1, backgroundColor: '#000000cc', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ backgroundColor: '#1c1c3a', borderRadius: 20, paddingVertical: 36, paddingHorizontal: 48, alignItems: 'center', borderWidth: 1, borderColor: '#4ade8044' }}>
+              <Text style={{ fontSize: 40, marginBottom: 12 }}>🔄</Text>
+              <Text style={{ color: '#4ade80', fontSize: 28, fontWeight: '800', letterSpacing: 0.5 }}>Switch Sides</Text>
+            </View>
+          </View>
+        </Modal>
+
       </View>
     );
   }
@@ -1699,61 +1821,6 @@ function Root() {
           </TouchableOpacity>
         </View>
 
-        {/* Rest timer banner on progress screen */}
-        {restTimerEnabled && (() => {
-          const suggested = getRestSuggestion(selectedExercise);
-          const isRunning = restTimerRunning && restingForExercise === selectedExercise;
-          const progressWidth = isRunning ? `${(restTimerRemaining / restTimerDuration) * 100}%` : '0%';
-          return (
-            <View style={[styles.restBanner, { marginBottom: 8 }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 5 }}>
-                <Text style={{ color: '#4ade80', fontSize: 10, fontWeight: '800', letterSpacing: 1.2 }}>⏻  REST TIMER</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: 'bold', flex: 1, marginRight: 12 }} numberOfLines={1}>
-                  {cleanExerciseName(selectedExercise)}{' '}
-                  <Text style={{ color: '#4ade80' }}>
-                    {isRunning ? `• ${formatTime(restTimerRemaining)}` : `• ${formatTime(suggested)}`}
-                  </Text>
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {isRunning ? (
-                    <>
-                      <TouchableOpacity
-                        style={{ backgroundColor: '#2a2a3e', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 }}
-                        onPress={() => { setRestTimerRunning(false); setRestTimerRemaining(0); setRestingForExercise(null); }}
-                      >
-                        <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600' }}>Skip</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={{ backgroundColor: COLORS.accent, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 }}
-                        onPress={() => setRestTimerRemaining(r => Math.min(r + 30, restTimerDuration))}
-                      >
-                        <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '700' }}>+30s</Text>
-                      </TouchableOpacity>
-                    </>
-                  ) : (
-                    <TouchableOpacity
-                      style={{ backgroundColor: '#4ade80', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 7 }}
-                      onPress={() => {
-                        setRestingForExercise(selectedExercise);
-                        setRestTimerDuration(suggested);
-                        setRestTimerRemaining(suggested);
-                        setRestTimerRunning(true);
-                      }}
-                    >
-                      <Text style={{ color: '#000', fontSize: 13, fontWeight: '700' }}>Start</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-              <View style={{ height: 3, backgroundColor: '#1a2a1a', borderRadius: 2 }}>
-                <View style={{ height: 3, backgroundColor: '#4ade80', borderRadius: 2, width: progressWidth }} />
-              </View>
-            </View>
-          );
-        })()}
-
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
           {/* Week selector */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12 }}>
@@ -1782,6 +1849,61 @@ function Root() {
               <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '700', lineHeight: 22 }}>›</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Rest timer banner */}
+          {restTimerEnabled && (() => {
+            const suggested = getRestSuggestion(selectedExercise);
+            const isRunning = restTimerRunning && restingForExercise === selectedExercise;
+            const progressWidth = isRunning ? `${(restTimerRemaining / restTimerDuration) * 100}%` : '0%';
+            return (
+              <View style={[styles.restBanner, { marginBottom: 12 }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+                  <Text style={{ color: '#4ade80', fontSize: 10, fontWeight: '800', letterSpacing: 1.2 }}>⏻  REST TIMER</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: 'bold', flex: 1, marginRight: 12 }} numberOfLines={1}>
+                    {cleanExerciseName(selectedExercise)}{' '}
+                    <Text style={{ color: '#4ade80' }}>
+                      {isRunning ? `• ${formatTime(restTimerRemaining)}` : `• ${formatTime(suggested)}`}
+                    </Text>
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {isRunning ? (
+                      <>
+                        <TouchableOpacity
+                          style={{ backgroundColor: '#2a2a3e', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 }}
+                          onPress={() => { setRestTimerRunning(false); setRestTimerRemaining(0); setRestingForExercise(null); }}
+                        >
+                          <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600' }}>Skip</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={{ backgroundColor: COLORS.accent, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 }}
+                          onPress={() => setRestTimerRemaining(r => Math.min(r + 30, restTimerDuration))}
+                        >
+                          <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '700' }}>+30s</Text>
+                        </TouchableOpacity>
+                      </>
+                    ) : (
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#4ade80', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 7 }}
+                        onPress={() => {
+                          setRestingForExercise(selectedExercise);
+                          setRestTimerDuration(suggested);
+                          setRestTimerRemaining(suggested);
+                          setRestTimerRunning(true);
+                        }}
+                      >
+                        <Text style={{ color: '#000', fontSize: 13, fontWeight: '700' }}>Start</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+                <View style={{ height: 3, backgroundColor: '#1a2a1a', borderRadius: 2 }}>
+                  <View style={{ height: 3, backgroundColor: '#4ade80', borderRadius: 2, width: progressWidth }} />
+                </View>
+              </View>
+            );
+          })()}
 
           {/* Header */}
           <View style={styles.progressHeader}>
@@ -1878,14 +2000,12 @@ function Root() {
                       >
                         <Text style={{ color: '#4ade80', fontSize: 10 }}>+5</Text>
                       </TouchableOpacity>
-                      <TextInput
-                        style={{ color: COLORS.text, fontSize: 13, backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 4, width: 46, textAlign: 'center' }}
-                        keyboardType="decimal-pad"
-                        value={set.weight}
-                        onChangeText={v => { const s = [...sessionSets]; s[i] = { ...s[i], weight: v }; setSessionSets(s); }}
-                        placeholder="lbs"
-                        placeholderTextColor={COLORS.muted}
-                      />
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 4, width: 46, alignItems: 'center' }}
+                        onPress={() => { setWeightPickerIndex(i); setWeightPickerVisible(true); }}
+                      >
+                        <Text style={{ color: set.weight ? COLORS.text : COLORS.muted, fontSize: 13 }}>{set.weight || 'lbs'}</Text>
+                      </TouchableOpacity>
                     </View>
                     <Text style={{ color: COLORS.muted, fontSize: 10 }}>lbs ×</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -2047,7 +2167,44 @@ function Root() {
           ) : null}
         </ScrollView>
 
+        {/* Weight Picker Modal */}
+        <Modal visible={weightPickerVisible} transparent animationType="slide">
+          <View style={{ flex: 1, backgroundColor: '#000000cc', justifyContent: 'flex-end' }}>
+            <View style={{ backgroundColor: '#1c1c3a', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#ffffff10' }}>
+                <Text style={{ color: COLORS.muted, fontSize: 15 }}>Select Weight</Text>
+                <TouchableOpacity onPress={() => setWeightPickerVisible(false)}>
+                  <Text style={{ color: '#4a90e2', fontSize: 15, fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={{ maxHeight: 340 }} showsVerticalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', padding: 12, gap: 8 }}>
+                  {Array.from({ length: 100 }, (_, i) => (i + 1) * 5).map(w => {
+                    const current = weightPickerIndex !== null ? parseFloat(sessionSets[weightPickerIndex]?.weight) || 0 : 0;
+                    const selected = current === w;
+                    return (
+                      <TouchableOpacity
+                        key={w}
+                        onPress={() => {
+                          const s = [...sessionSets];
+                          s[weightPickerIndex] = { ...s[weightPickerIndex], weight: String(w) };
+                          setSessionSets(s);
+                          setWeightPickerVisible(false);
+                        }}
+                        style={{ width: '18%', paddingVertical: 10, borderRadius: 10, backgroundColor: selected ? '#4ade8033' : '#2a2a4a', borderWidth: 1, borderColor: selected ? '#4ade80' : 'transparent', alignItems: 'center' }}
+                      >
+                        <Text style={{ color: selected ? '#4ade80' : COLORS.text, fontSize: 14, fontWeight: selected ? '700' : '400' }}>{w}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
         {/* Day complete modal */}
+
         <Modal visible={showDayComplete} transparent animationType="fade">
           <View style={{ flex: 1, backgroundColor: '#000000ee', justifyContent: 'center', alignItems: 'center', padding: 32 }}>
             <View style={{ alignItems: 'center', justifyContent: 'center', width: 220, height: 220 }}>
