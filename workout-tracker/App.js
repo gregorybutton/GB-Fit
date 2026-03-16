@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  Switch,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -33,12 +34,12 @@ function buildPlan(days) { return days; }
 const WORKOUT_PLANS = {
   'Building Muscle - Men': buildPlan([
     { day: 'Sunday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
-    { day: 'Monday – Upper Body', exercises: ['Incline Bench Press 4×6-8', 'Weighted Pull Ups 4×6-8', 'Bent Over Barbell Row 3×8-10', 'Pec Deck 3×10-12', 'Seated Lateral Raise 3×12-15', 'Cable Tricep Pushdowns 3×10-12', 'Incline Dumbbell Curl 3×10-12'] },
-    { day: 'Tuesday – Lower Body', exercises: ['Lying Leg Curl 2×8', 'Barbell Back Squat 4×5-8', 'Romanian Deadlift 3×8-10', 'Leg Press 3×10-12', 'Seated Calf Raise 4×10-15'] },
+    { day: 'Monday – Upper Body', exercises: ['Incline Bench Press 4×6-8', 'Weighted Pull Ups 4×6-8', 'Bent Over Barbell Row 3×8-10', 'Pec Deck 3×10-12', 'Cable Single Arm Lateral Raise 3×12-15', 'Cable Tricep Pushdown 3×10-12', 'EZ Bar Seated Curl 3×10-12'] },
+    { day: 'Tuesday – Lower Body', exercises: ['Lying Leg Curl 2×8', 'Barbell Back Squat 4×5-8', 'Romanian Deadlift 3×8-10', 'Leg Press 3×10-12', 'Standing Calf Raise 4×10-15'] },
     { day: 'Wednesday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
-    { day: 'Thursday – Push Day', exercises: ['Flat Bench Press 4×5-8', 'Machine Shoulder Press 3×10', 'Pec Deck 3×15', 'Seated Lateral Raise 4×12-15', 'Overhead Extension 3×8'] },
-    { day: 'Friday – Pull Day', exercises: ['Close Grip Lat Pulldown 3×10', 'Chest-Supported Row 3×8', 'Close-Grip Cable Row 2×15', 'Reverse Cable Flyes 3×15', 'Shrugs 4×15', 'EZ-Bar Curl 3×10', 'Machine Preacher Curl 3×15'] },
-    { day: 'Saturday – Leg Day', exercises: ['Seated Leg Curl 2×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 2×10', 'Hip Adduction 2×10', 'Standing Calf Raise 3×10'] },
+    { day: 'Thursday – Push Day', exercises: ['Flat Bench Press 4×5-8', 'Machine Shoulder Press 3×10', 'Pec Deck 3×15', 'Cable Single Arm Lateral Raise 4×12-15', 'Overhead Extension 3×8'] },
+    { day: 'Friday – Pull Day', exercises: ['Neutral Grip Lat Pulldown 3×10', 'Dumbbell Chest Supported Row 3×8', 'Cable Seated Row 2×15', 'Reverse Cable Flyes 3×15', 'Shrugs 4×15', 'EZ Bar Seated Curl 3×10', 'Machine Preacher Curl 3×15'] },
+    { day: 'Saturday – Leg Day', exercises: ['Kneeling Leg Curl 2×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 2×10', 'Hip Adduction 2×10', 'Standing Calf Raise 3×10'] },
   ]),
   'Building Muscle - Women': buildPlan([
     { day: 'Sunday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
@@ -47,7 +48,7 @@ const WORKOUT_PLANS = {
     { day: 'Wednesday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
     { day: 'Thursday – Glute Pump / Isolation', exercises: ['Glute Bridge 4×10-12', 'Step Ups 3×10', 'Cable Glute Kickbacks 3×12-15', 'Hip Abduction Machine 3×15-20', '45° Back Extensions 3×12-15'] },
     { day: 'Friday – Glutes + Quads', exercises: ['Back Squat 4×6-8', 'Leg Press 3×10-12', 'Walking Lunges 3×10', 'Leg Extension 3×12-15', 'Barbell Hip Thrust 3×8-10'] },
-    { day: 'Saturday – Leg Day', exercises: ['Seated Leg Curl 2×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 2×10', 'Hip Adduction 2×10', 'Standing Calf Raise 3×10'] },
+    { day: 'Saturday – Leg Day', exercises: ['Kneeling Leg Curl 2×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 2×10', 'Hip Adduction 2×10', 'Standing Calf Raise 3×10'] },
   ]),
 };
 
@@ -81,7 +82,7 @@ const EXERCISE_NOTES = {
   'Tricep Pushdowns':       'Elbows locked at your sides. Full extension at the bottom, don\'t let elbows flare on the way up.',
   'Back Squat':             'Brace 360°, chest tall. Break at hips and knees simultaneously. Drive knees out over toes throughout.',
   'Barbell Back Squat':     'Brace 360°, chest tall. Break at hips and knees simultaneously. Drive knees out over toes throughout.',
-  'Seated Leg Curl':        'Sit tall with back against the pad. Curl to full contraction and pause briefly at the bottom. Return slowly for a full hamstring stretch — don\'t let the weight stack bounce.',
+  'Kneeling Leg Curl':      'Kneel on the pad with ankles secured under the roller. Curl heels toward glutes with full contraction at the top. Lower slowly for a complete hamstring stretch — don\'t let the weight stack bounce.',
   'Romanian Deadlift':      'Hinge at the hips, slight knee bend. Feel the hamstring stretch before driving hips forward to stand.',
   'Standing Calf Raise':    'Stand with the balls of your feet on the edge of the platform. Lower into a full stretch, then drive up onto your toes and squeeze hard at the top. Control the descent — don\'t bounce at the bottom.',
   'Seated Calf Raise':      'Sit tall with the pad resting just above your knees. Lower into a full stretch, then drive up onto your toes and squeeze hard at the top. Control the descent — don\'t bounce at the bottom.',
@@ -105,9 +106,9 @@ const EXERCISE_NOTES = {
   'Hammer Curls':           'Neutral grip throughout. Trains brachialis and brachioradialis. Keep elbows tucked, avoid swinging.',
   'Front Squat':            'Elbows high, upright torso. Knees track over toes. Keep core braced to maintain the front rack position.',
   'Nordic Curls':           'Brace and lower as slowly as possible. Use your hands to catch yourself. Pull yourself back with hamstrings on the way up.',
-  'Close Grip Lat Pulldown': 'Grip shoulder-width or narrower, palms facing you. Pull elbows down toward your hips and squeeze the lats at the bottom. Control the return — don\'t let the bar yank you up.',
-  'Chest-Supported Row':    'Chest flat against the pad to eliminate momentum. Retract shoulder blades first, then row to lower chest. Squeeze at the top and lower with full control.',
-  'Close-Grip Cable Row':   'Sit tall, slight knee bend. Pull the handle to your lower sternum, driving elbows back. Squeeze shoulder blades together at the end — don\'t let shoulders roll forward on the return.',
+  'Neutral Grip Lat Pulldown':      'Use a neutral (palms-facing) grip. Pull elbows down toward your hips and squeeze the lats at the bottom. Control the return — don\'t let the stack yank you up.',
+  'Dumbbell Chest Supported Row':   'Chest flat against the pad to eliminate momentum. Retract shoulder blades first, then row to lower chest. Squeeze at the top and lower with full control.',
+  'Cable Seated Row':               'Sit tall, slight knee bend. Pull the handle to your lower sternum, driving elbows back. Squeeze shoulder blades together at the end — don\'t let shoulders roll forward on the return.',
   'Reverse Cable Flyes':    'Slight bend in elbows, hinge forward at the hips. Lead with your elbows and pull outward to shoulder height. Squeeze the rear delts at the top before lowering slowly.',
   'Shrugs':                 'Hold the weight at your sides, stand tall. Shrug straight up toward your ears — no rolling. Hold the contraction briefly at the top, then lower with control.',
   'EZ-Bar Curl':            'Grip the angled part of the bar, elbows pinned at your sides. Curl to full contraction and supinate slightly at the top. Lower slowly for maximum tension.',
@@ -119,16 +120,30 @@ const EXERCISE_NOTES = {
   'Lat Pulldown':           'Grip slightly wider than shoulder-width. Lean back slightly and pull the bar to your upper chest, driving elbows down toward your hips. Control the return — don\'t let the bar yank you up.',
   'Seated Cable Row':       'Sit tall with a slight knee bend. Pull the handle to your lower sternum, driving elbows back. Squeeze shoulder blades together at the end and return slowly — don\'t round the lower back.',
   'Dumbbell Shoulder Press':'Sit tall, core braced. Press dumbbells from shoulder height straight up until arms are fully extended. Lower with control to just below ear level — don\'t let the weights drift forward.',
-  'Seated Lateral Raise': 'Sit tall on the edge of a bench, dumbbells at your sides. Lead with your elbows and raise arms out to shoulder height — keep a slight bend in the elbow throughout. Pause briefly at the top, then lower slowly with control. Avoid shrugging or using momentum.',
+  'Cable Single Arm Lateral Raise': 'Stand beside the cable machine with the pulley set low. Lead with your elbow and raise the arm out to shoulder height — keep a slight bend in the elbow throughout. Pause briefly at the top, then lower slowly with control. Avoid shrugging or using momentum.',
   'Pec Deck':                  'Adjust the seat so handles are at chest height. Keep a slight bend in the elbows and lead with your elbows — not your hands. Squeeze the chest hard at the peak contraction, then return slowly for a full stretch. Don\'t let the weight snap back.',
   'Bent Over Barbell Row':     'Hinge at the hips until torso is roughly parallel to the floor, slight knee bend. Brace your core and keep your back flat throughout. Pull the bar to your lower chest, driving elbows back and squeezing the shoulder blades together at the top. Lower with control — don\'t let your back round on the descent.',
-  'Cable Tricep Pushdowns':    'Set the cable to a high pulley with a rope or bar attachment. Keep elbows tucked at your sides throughout — they should not move. Push down to full extension and squeeze the triceps hard at the bottom. Return slowly, allowing a full stretch at the top before the next rep.',
+  'Cable Tricep Pushdown':    'Set the cable to a high pulley with a rope or bar attachment. Keep elbows tucked at your sides throughout — they should not move. Push down to full extension and squeeze the triceps hard at the bottom. Return slowly, allowing a full stretch at the top before the next rep.',
 };
 
 // Local images — all commented out to use ExerciseDB API instead.
 // Uncomment any entry to override the API with your own photo.
 const EXERCISE_IMAGES = {
-  // 'Incline Bench':           require('./assets/exercises/incline-bench.jpg'),
+  'Incline Bench Press':     require('./assets/exercises/barbell-incline-bench-press.png'),
+  'Weighted Pull Ups':       require('./assets/exercises/weighted-pull-up.png'),
+  'Bent Over Barbell Row':   require('./assets/exercises/barbell-bent-over-row.png'),
+  'Pec Deck':                require('./assets/exercises/lever-pec-deck-fly.png'),
+  'Cable Single Arm Lateral Raise': require('./assets/exercises/cable-single-arm-lateral-raise.png'),
+  'Cable Tricep Pushdown':   require('./assets/exercises/cable-triceps-pushdown.png'),
+  'EZ Bar Seated Curl':      require('./assets/exercises/ez-barbell-seated-curls.png'),
+  'Standing Calf Raise':     require('./assets/exercises/standing-calf-raise.png'),
+  'Leg Press':               require('./assets/exercises/lever-angled-leg-press.png'),
+  'Romanian Deadlift':       require('./assets/exercises/barbell-romanian-deadlift.png'),
+  'Lying Leg Curl':          require('./assets/exercises/lever-lying-leg-curl.png'),
+  'Barbell Back Squat':      require('./assets/exercises/barbell-full-squat.png'),
+  'Flat Bench Press':        require('./assets/exercises/barbell-pin-bench-press.png'),
+  'Machine Shoulder Press':  require('./assets/exercises/lever-seated-shoulder-press.png'),
+  'Overhead Extension':      require('./assets/exercises/cable-standing-crossover-overhead-tricep-extension.png'),
   // 'Seated Cable Fly':        require('./assets/exercises/seated-cable-fly.jpg'),
   // 'Weighted Pull Ups':       require('./assets/exercises/weighted-pull-ups.jpg'),
   // 'Cable Lateral Raise':     require('./assets/exercises/cable-lateral-raise.jpg'),
@@ -140,21 +155,21 @@ const EXERCISE_IMAGES = {
   // 'Pec Deck':                require('./assets/exercises/pec-deck.jpg'),
   // 'Overhead Extension':      require('./assets/exercises/Overhead Extension.jpg'),
   // 'Cable Kickback':          require('./assets/exercises/cable-kickbacks.jpg'),
-  // 'Close Grip Lat Pulldown': require('./assets/exercises/close-grip-lat-pulldown.jpg'),
-  // 'Chest-Supported Row':     require('./assets/exercises/chest-supported-row.jpg'),
-  // 'Close-Grip Cable Row':    require('./assets/exercises/close-grip-cable-row.jpg'),
-  // 'Reverse Cable Flyes':     require('./assets/exercises/reverse-cable-flyes.jpg'),
+  'Neutral Grip Lat Pulldown':    require('./assets/exercises/cable-neutral-grip-lat-pulldown.png'),
+  'Dumbbell Chest Supported Row': require('./assets/exercises/dumbbell-row-with-chest-supported.png'),
+  'Cable Seated Row':             require('./assets/exercises/cable-seated-lats-focused-row.png'),
+  'Reverse Cable Flyes':        require('./assets/exercises/cable-45-degrees-reverse-fly.png'),
   // 'EZ-Bar Curl':             require('./assets/exercises/ez-bar-curl.jpg'),
-  // 'Machine Preacher Curl':   require('./assets/exercises/machine-preacher-curl.jpg'),
-  // 'Shrugs':                  require('./assets/exercises/shrugs.jpg'),
-  // 'Seated Leg Curl':         require('./assets/exercises/seated-leg-curl.jpg'),
-  // 'Hip Adduction':           require('./assets/exercises/hip-adduction.jpg'),
-  // 'Linear Hack Squat':       require('./assets/exercises/linear-hack-squat.jpg'),
+  'Machine Preacher Curl':      require('./assets/exercises/lever-preacher-curl.png'),
+  'Shrugs':                     require('./assets/exercises/barbell-power-shrug.png'),
+  'Kneeling Leg Curl':          require('./assets/exercises/kneeling-leg-curl.png'),
+  'Hip Adduction':              require('./assets/exercises/seated-hip-adduction.png'),
+  'Linear Hack Squat':          require('./assets/exercises/linear-hack-squat.png'),
   // 'Back Squat':              require('./assets/exercises/back-squat.jpg'),
   // 'Romanian Deadlift':       require('./assets/exercises/romanian-deadlift.jpg'),
   // 'Leg Press':               require('./assets/exercises/leg-press.jpg'),
-  // 'Leg Extension':           require('./assets/exercises/leg-extension.jpg'),
-  // 'Leg Extensions':          require('./assets/exercises/leg-extension.jpg'),
+  'Leg Extension':              require('./assets/exercises/leg-extension.png'),
+  'Leg Extensions':             require('./assets/exercises/leg-extension.png'),
   // 'Hip Abduction':           require('./assets/exercises/hip-abduction.jpg'),
   // 'Standing Calf Raise':     require('./assets/exercises/standing-calf-raise.jpg'),
   // 'Lying Leg Curl':          require('./assets/exercises/lying-leg-curl.jpg'),
@@ -168,12 +183,11 @@ const EXERCISE_IMAGES = {
 // Maps app exercise names to their exact DB name + optional image index (default 0)
 const EXERCISE_DB_ALIASES = {
   'Pec Deck':                    { name: 'butterfly', index: 1 },
-  'Seated Lateral Raise':   { name: 'seated side lateral raise', index: 0 },
   'Barbell Back Squat':          { name: 'barbell full squat', index: 0 },
   'Lying Leg Curl':              { name: 'lying leg curls', index: 0 },
   'Seated Calf Raise':           { name: 'seated calf raise', index: 0 },
   'Bent Over Barbell Row':       { name: 'bent over barbell row', index: 0 },
-  'Cable Tricep Pushdowns':      { name: 'reverse grip triceps pushdown', index: 0 },
+  'Cable Tricep Pushdown':       { name: 'reverse grip triceps pushdown', index: 0 },
 };
 
 const COMPOUND_KEYWORDS = ['bench', 'squat', 'deadlift', 'row', 'pull', 'press', 'lunge', 'hip thrust', 'dip', 'chin'];
@@ -196,7 +210,6 @@ function cleanExerciseName(name) {
     .replace(/^DB\s/i, 'Dumbbell ')
     .replace(/^BB\s/i, 'Barbell ')
     .replace(/\bOHP\b/g, 'Overhead Press')
-    .replace(/\bEZ Bar\b/gi, 'Barbell')
     .trim();
 }
 
@@ -274,10 +287,8 @@ function ExerciseImage({ exerciseName, exerciseDbImages = {}, size = 120 }) {
   return (
     <>
       <TouchableOpacity onPress={() => setEnlarged(true)}>
-        {(clean === 'Weighted Pull Ups' || clean === 'Machine Shoulder Press') ? (
-          <View style={{ width: size, height: thumbHeight, borderRadius: 8, overflow: 'hidden' }}>
-            <Image source={source} style={{ width: size, height: thumbHeight * 2 }} resizeMode="cover" />
-          </View>
+        {clean === 'Machine Shoulder Press' || clean === 'Standing Calf Raise' || clean === 'Cable Tricep Pushdown' ? (
+          <Image source={source} style={[styles.exImg, { width: size, height: thumbHeight }]} resizeMode="contain" />
         ) : (
           <Image source={source} style={[styles.exImg, { width: size, height: thumbHeight }]} resizeMode="cover" />
         )}
@@ -327,17 +338,19 @@ function formatTime(s) {
 function CircularProgress({ progress, size = 210, strokeWidth = 14 }) {
   const half = size / 2;
   const color = '#4ade80';
-  const rightRotate = `${Math.min(progress, 0.5) * 360 - 180}deg`;
-  const leftRotate = `${Math.max(progress - 0.5, 0) * 360}deg`;
+  const p = Math.max(0, Math.min(1, progress));
+  // borderTopColor+borderRightColor arc spans 315°→135°, not 270°→90°, so offset is -135 not -180
+  const rightRotate = `${Math.min(p, 0.5) * 360 - 135}deg`;
+  const leftRotate = `${Math.max(p - 0.5, 0) * 360 - 135}deg`;
   return (
     <View style={{ width: size, height: size }}>
       <View style={{ position: 'absolute', width: size, height: size, borderRadius: half, borderWidth: strokeWidth, borderColor: '#2a2a2a' }} />
       <View style={{ position: 'absolute', right: 0, width: half, height: size, overflow: 'hidden' }}>
-        <View style={{ position: 'absolute', left: -half, width: size, height: size, borderRadius: half, borderWidth: strokeWidth, borderColor: color, transform: [{ rotate: rightRotate }] }} />
+        <View style={{ position: 'absolute', left: -half, width: size, height: size, borderRadius: half, borderWidth: strokeWidth, borderColor: 'transparent', borderTopColor: color, borderRightColor: color, transform: [{ rotate: rightRotate }] }} />
       </View>
-      {progress > 0.5 && (
+      {p > 0.5 && (
         <View style={{ position: 'absolute', left: 0, width: half, height: size, overflow: 'hidden' }}>
-          <View style={{ position: 'absolute', right: -half, width: size, height: size, borderRadius: half, borderWidth: strokeWidth, borderColor: color, transform: [{ rotate: leftRotate }] }} />
+          <View style={{ position: 'absolute', right: -half, width: size, height: size, borderRadius: half, borderWidth: strokeWidth, borderColor: 'transparent', borderBottomColor: color, borderLeftColor: color, transform: [{ rotate: leftRotate }] }} />
         </View>
       )}
     </View>
@@ -399,13 +412,19 @@ function Root() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(1);
   const TOTAL_WEEKS = 8;
+  const [weekDetailFrom, setWeekDetailFrom] = useState('plan');
+  const [settingsFrom, setSettingsFrom] = useState('plan');
+  const [restTimerEnabled, setRestTimerEnabled] = useState(true);
+  const [showDayComplete, setShowDayComplete] = useState(false);
 
   useEffect(() => {
     Promise.all([
       AsyncStorage.getItem('logs'),
       AsyncStorage.getItem('user'),
-    ]).then(([logsVal, userVal]) => {
+      AsyncStorage.getItem('restTimerEnabled'),
+    ]).then(([logsVal, userVal, restTimerVal]) => {
       if (logsVal) setLogs(JSON.parse(logsVal));
+      if (restTimerVal !== null) setRestTimerEnabled(JSON.parse(restTimerVal));
       if (userVal) {
         const savedUser = JSON.parse(userVal);
         setUser(savedUser);
@@ -603,6 +622,12 @@ function Root() {
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setMenuVisible(false)}>
             <View style={{ position: 'absolute', top: 10, right: 8, backgroundColor: '#1c1c3a', borderRadius: 12, borderWidth: 1, borderColor: '#ffffff15', overflow: 'hidden', minWidth: 160 }}>
               <TouchableOpacity
+                onPress={() => { setMenuVisible(false); setSettingsFrom(screen); setScreen('settings'); }}
+                style={{ paddingVertical: 14, paddingHorizontal: 18, borderBottomWidth: 1, borderBottomColor: '#ffffff10' }}
+              >
+                <Text style={{ color: COLORS.text, fontSize: 15, fontWeight: '600' }}>Settings</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 onPress={() => { setMenuVisible(false); handleLogout(); }}
                 style={{ paddingVertical: 14, paddingHorizontal: 18 }}
               >
@@ -757,15 +782,16 @@ function Root() {
   }
 
   // ── Week Tracker Card (shared) ───────────────────────────
-  function WeekTrackerCard() {
+  function WeekTrackerCard({ fromScreen }) {
     const workoutDays = (plan || []).filter(d => !d.day.includes('Rest'));
     const completedDays = workoutDays.filter(d =>
-      d.exercises.some(e => (logs[logKey(d.day, e)] || []).length > 0)
+      d.exercises.some(e => (logs[logKey(d.day, e)] || []).some(en => en.programWeek === currentWeek))
     ).length;
     const progress = workoutDays.length > 0 ? completedDays / workoutDays.length : 0;
     const programProgress = Math.round(((currentWeek - 1) / TOTAL_WEEKS + progress / TOTAL_WEEKS) * 100);
     return (
-      <View style={{ backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, padding: 14, marginBottom: 12 }}>
+      <TouchableOpacity activeOpacity={0.85} onPress={() => { setWeekDetailFrom(fromScreen || 'plan'); setScreen('weekDetail'); }}
+        style={{ backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, padding: 14, marginBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
             <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 18 }}>Week {currentWeek}</Text>
@@ -789,7 +815,7 @@ function Root() {
         <Text style={{ color: COLORS.muted, fontSize: 13 }}>
           <Text style={{ color: COLORS.text, fontWeight: '600' }}>{completedDays} / {workoutDays.length}</Text> Workouts Completed
         </Text>
-      </View>
+      </TouchableOpacity>
     );
   }
 
@@ -1088,6 +1114,186 @@ function Root() {
     );
   }
 
+  // ── Settings Screen ───────────────────────────────────────
+  if (screen === 'settings') {
+    const totalLogEntries = Object.values(logs).reduce((sum, arr) => sum + arr.length, 0);
+    const totalVolume = Object.values(logs).reduce((sum, arr) =>
+      sum + arr.reduce((s, entry) => {
+        const sets = entry.sets || [{ weight: entry.weight, reps: entry.reps }];
+        return s + sets.reduce((ss, st) => ss + (parseFloat(st.weight) || 0) * (parseInt(st.reps) || 0), 0);
+      }, 0)
+    , 0);
+
+    return (
+      <View style={[styles.container, { paddingTop: 70 }]}>
+        <LogoutBtn />
+        <TouchableOpacity onPress={() => setScreen(settingsFrom)} style={[styles.backBtn, { position: 'absolute', top: 20, left: 16, zIndex: 10 }]}>
+          <Text style={styles.backText}>‹</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.title}>Settings</Text>
+
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* User Info */}
+          <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 4 }}>ACCOUNT</Text>
+          <View style={{ backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, marginBottom: 20, overflow: 'hidden' }}>
+            {[
+              { label: 'Name', value: user?.name || '—' },
+              { label: 'Email', value: user?.email || '—' },
+              { label: 'Goal', value: answers?.goal || '—' },
+            ].map(({ label, value }, idx, arr) => (
+              <View key={label} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: idx < arr.length - 1 ? 1 : 0, borderBottomColor: '#ffffff0d' }}>
+                <Text style={{ color: COLORS.muted, fontSize: 14 }}>{label}</Text>
+                <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '500' }}>{value}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Preferences */}
+          <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>PREFERENCES</Text>
+          <View style={{ backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, marginBottom: 20, overflow: 'hidden' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16 }}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <Text style={{ color: COLORS.text, fontSize: 14 }}>Rest Timer</Text>
+                <Text style={{ color: COLORS.muted, fontSize: 12, marginTop: 2 }}>Auto-start rest timer after each set</Text>
+              </View>
+              <Switch
+                value={restTimerEnabled}
+                onValueChange={v => {
+                  setRestTimerEnabled(v);
+                  AsyncStorage.setItem('restTimerEnabled', JSON.stringify(v));
+                }}
+                trackColor={{ false: '#3a3a5a', true: '#4a90e2' }}
+                thumbColor={restTimerEnabled ? '#fff' : '#aaa'}
+              />
+            </View>
+          </View>
+
+          {/* Log Stats */}
+          <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>YOUR DATA</Text>
+          <View style={{ backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, marginBottom: 20, overflow: 'hidden' }}>
+            {[
+              { label: 'Total Sessions Logged', value: String(totalLogEntries) },
+              { label: 'Total Volume Lifted', value: totalVolume > 0 ? `${totalVolume.toLocaleString()} lbs` : '—' },
+              { label: 'Exercises Tracked', value: String(Object.keys(logs).filter(k => logs[k].length > 0).length) },
+            ].map(({ label, value }, idx, arr) => (
+              <View key={label} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: idx < arr.length - 1 ? 1 : 0, borderBottomColor: '#ffffff0d' }}>
+                <Text style={{ color: COLORS.muted, fontSize: 14 }}>{label}</Text>
+                <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '500' }}>{value}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Danger Zone */}
+          <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>DANGER ZONE</Text>
+          <TouchableOpacity
+            onPress={() => Alert.alert(
+              'Reset All Logs',
+              'This will permanently delete all your workout history. This cannot be undone.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Reset Everything', style: 'destructive', onPress: () => {
+                  setLogs({});
+                  AsyncStorage.removeItem('logs');
+                }},
+              ]
+            )}
+            style={{ backgroundColor: '#2a1a1a', borderWidth: 1, borderColor: '#ff6b6b40', borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginBottom: 20 }}
+          >
+            <Text style={{ color: '#ff6b6b', fontSize: 15, fontWeight: '600' }}>Reset All Logs</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // ── Week Detail Screen ────────────────────────────────────
+  if (screen === 'weekDetail') {
+    const workoutDays = (plan || []).filter(d => !d.day.includes('Rest'));
+    const completedDays = workoutDays.filter(d =>
+      d.exercises.some(e => (logs[logKey(d.day, e)] || []).some(en => en.programWeek === currentWeek))
+    ).length;
+    const progress = workoutDays.length > 0 ? completedDays / workoutDays.length : 0;
+
+    const totalVolume = workoutDays.reduce((sum, d) =>
+      sum + d.exercises.reduce((s, e) => {
+        const entry = (logs[logKey(d.day, e)] || []).slice(-1)[0];
+        if (!entry) return s;
+        const sets = entry.sets || [{ weight: entry.weight, reps: entry.reps }];
+        return s + sets.reduce((ss, st) => ss + (parseFloat(st.weight) || 0) * (parseInt(st.reps) || 0), 0);
+      }, 0)
+    , 0);
+
+    const loggedExerciseCount = workoutDays.reduce((sum, d) =>
+      sum + d.exercises.filter(e => (logs[logKey(d.day, e)] || []).length > 0).length
+    , 0);
+    const estimatedMinutes = loggedExerciseCount * 8;
+    const timeTrained = estimatedMinutes >= 60
+      ? `${Math.floor(estimatedMinutes / 60)} hr ${estimatedMinutes % 60} min`
+      : `${estimatedMinutes} min`;
+
+    const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const planDayMap = {};
+    (plan || []).forEach(d => {
+      const match = DAY_NAMES.findIndex(n => d.day.startsWith(n));
+      if (match !== -1) planDayMap[match] = d;
+    });
+
+    return (
+      <View style={[styles.container, { paddingTop: 70 }]}>
+        <LogoutBtn />
+        <TouchableOpacity onPress={() => setScreen(weekDetailFrom)} style={[styles.backBtn, { position: 'absolute', top: 20, left: 16, zIndex: 10 }]}>
+          <Text style={styles.backText}>‹</Text>
+        </TouchableOpacity>
+
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Big circular progress */}
+          <View style={{ alignItems: 'center', marginBottom: 20 }}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', width: 140, height: 140 }}>
+              <CircularProgress progress={progress} size={140} strokeWidth={10} />
+              <View style={{ position: 'absolute', alignItems: 'center' }}>
+                <Text style={{ color: COLORS.muted, fontSize: 13 }}>Week <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{currentWeek}</Text> of {TOTAL_WEEKS}</Text>
+                <Text style={{ color: '#4ade80', fontSize: 28, fontWeight: 'bold' }}>{Math.round(progress * 100)}%</Text>
+              </View>
+            </View>
+            <Text style={{ color: COLORS.text, fontSize: 20, fontWeight: 'bold', marginTop: 10 }}>Current Week</Text>
+          </View>
+
+          {/* Stats section */}
+          <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>Workout Progress</Text>
+
+          {[
+            { label: 'Workouts Completed', value: `${completedDays} / ${workoutDays.length}` },
+            { label: 'Total Volume', value: totalVolume > 0 ? `${totalVolume.toLocaleString()} lbs` : '—' },
+            { label: 'Time Trained', value: estimatedMinutes > 0 ? timeTrained : '—' },
+          ].map(({ label, value }) => (
+            <View key={label} style={{ backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 12, padding: 14, marginBottom: 8 }}>
+              <Text style={{ color: COLORS.muted, fontSize: 12, marginBottom: 4 }}>{label}</Text>
+              <Text style={{ color: COLORS.text, fontSize: 20, fontWeight: 'bold' }}>{value}</Text>
+            </View>
+          ))}
+
+          {/* Weekly day bar */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, marginBottom: 4 }}>
+            {DAY_LABELS.map((label, i) => {
+              const d = planDayMap[i];
+              const isRest = !d || d.day.includes('Rest');
+              const isDone = d && d.exercises.some(e => (logs[logKey(d.day, e)] || []).length > 0);
+              const barColor = isRest ? '#2a2a4a' : isDone ? '#4a90e2' : '#3a3a5a';
+              return (
+                <View key={label} style={{ alignItems: 'center', flex: 1 }}>
+                  <Text style={{ color: COLORS.muted, fontSize: 11, marginBottom: 4 }}>{label}</Text>
+                  <View style={{ width: '80%', height: 6, borderRadius: 3, backgroundColor: barColor }} />
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
   // ── Plan Overview Screen ─────────────────────────────────
   if (screen === 'plan') {
     return (
@@ -1104,15 +1310,37 @@ function Root() {
         <FlatList
           data={plan}
           keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.card} onPress={() => { setSelectedDay(item); setActiveExerciseIndex(0); setRestTimerRunning(false); setRestingForExercise(null); setScreen('day'); }}>
-              <View style={styles.cardRow}>
-                <Text style={styles.dayTitle}>{item.day}</Text>
-                <Text style={styles.chevron}>›</Text>
-              </View>
-              <Text style={styles.exerciseCount}>{item.exercises.length} exercises</Text>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => {
+            const isRestDay = item.day.includes('Rest');
+            const workoutExs = isRestDay ? [] : item.exercises.filter(e =>
+              !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
+            );
+            const isCompleted = !isRestDay && workoutExs.length > 0 && workoutExs.every(e =>
+              (logs[logKey(item.day, e)] || []).some(en => en.programWeek === currentWeek)
+            );
+            const isStarted = !isRestDay && !isCompleted && workoutExs.some(e =>
+              (logs[logKey(item.day, e)] || []).some(en => en.programWeek === currentWeek)
+            );
+            return (
+              <TouchableOpacity style={[styles.card, { position: 'relative' }]} onPress={() => { setSelectedDay(item); setActiveExerciseIndex(0); setRestTimerRunning(false); setRestingForExercise(null); setScreen('day'); }}>
+                {isCompleted && (
+                  <View style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, width: 22, height: 22, borderRadius: 11, backgroundColor: '#4ade80', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#000', fontSize: 13, fontWeight: '800', lineHeight: 16 }}>✓</Text>
+                  </View>
+                )}
+                {isStarted && (
+                  <View style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, width: 22, height: 22, borderRadius: 11, backgroundColor: '#f59e0b', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#000', fontSize: 13, fontWeight: '800', lineHeight: 16 }}>~</Text>
+                  </View>
+                )}
+                <View style={styles.cardRow}>
+                  <Text style={styles.dayTitle}>{item.day}</Text>
+                  <Text style={[styles.chevron, { opacity: isCompleted || isStarted ? 0 : 1 }]}>›</Text>
+                </View>
+                <Text style={styles.exerciseCount}>{item.exercises.length} exercises</Text>
+              </TouchableOpacity>
+            );
+          }}
         />
       </View>
     );
@@ -1120,13 +1348,14 @@ function Root() {
 
   // ── Day Detail Screen ────────────────────────────────────
   if (screen === 'day') {
+    const dayIndex = plan ? plan.findIndex(d => d.day === selectedDay.day) : -1;
     const isRestDay = selectedDay.day.includes('Rest');
     const workoutExercises = isRestDay
       ? []
       : selectedDay.exercises.filter(e =>
           !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
         );
-    const loggedCount = workoutExercises.filter(e => (logs[logKey(selectedDay.day, e)] || []).length > 0).length;
+    const loggedCount = workoutExercises.filter(e => (logs[logKey(selectedDay.day, e)] || []).some(en => en.programWeek === currentWeek)).length;
     const totalExercises = workoutExercises.length;
     const progressFraction = totalExercises > 0 ? loggedCount / totalExercises : 0;
     const estimatedMinutes = totalExercises * 8;
@@ -1147,7 +1376,7 @@ function Root() {
     }
 
     return (
-      <View style={[styles.container, { paddingTop: 70 }]}>
+      <View style={[styles.container, { paddingTop: 85 }]}>
         {/* Top nav row */}
         <LogoutBtn />
         <TouchableOpacity onPress={() => setScreen('plan')} style={[styles.backBtn, { position: 'absolute', top: 20, left: 16, zIndex: 10 }]}>
@@ -1155,7 +1384,19 @@ function Root() {
         </TouchableOpacity>
 
         {/* Title */}
-        <Text style={[styles.title, { marginBottom: 4 }]}>{selectedDay.day}</Text>
+        <View style={{ width: '100%', height: 40, alignItems: 'center', justifyContent: 'center', marginTop: 16, marginBottom: 4 }}>
+          <TouchableOpacity
+            onPress={() => { if (dayIndex > 0) { setSelectedDay(plan[dayIndex - 1]); setActiveExerciseIndex(0); } }}
+            style={{ position: 'absolute', left: 6, top: 2, width: 36, height: 36, borderRadius: 8, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: dayIndex > 0 ? 1 : 0.35 }}>
+            <Text style={{ color: COLORS.text, fontSize: 22, fontWeight: '700', lineHeight: 26 }}>‹</Text>
+          </TouchableOpacity>
+          <Text style={[styles.title, { lineHeight: 40 }]}>{selectedDay.day}</Text>
+          <TouchableOpacity
+            onPress={() => { if (plan && dayIndex < plan.length - 1) { setSelectedDay(plan[dayIndex + 1]); setActiveExerciseIndex(0); } }}
+            style={{ position: 'absolute', right: 6, top: 2, width: 36, height: 36, borderRadius: 8, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: plan && dayIndex < plan.length - 1 ? 1 : 0.35 }}>
+            <Text style={{ color: COLORS.text, fontSize: 22, fontWeight: '700', lineHeight: 26 }}>›</Text>
+          </TouchableOpacity>
+        </View>
         {!isRestDay && (
           <Text style={{ color: COLORS.muted, fontSize: 13, textAlign: 'center', marginBottom: 10 }}>
             ⏱ {totalExercises} exercises  •  ~{estimatedMinutes} min
@@ -1165,7 +1406,8 @@ function Root() {
         {/* Week Tracker + Progress Ring row */}
         {!isRestDay && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <View style={{ flex: 1, backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, padding: 10 }}>
+            <TouchableOpacity activeOpacity={0.85} onPress={() => { setWeekDetailFrom('day'); setScreen('weekDetail'); }}
+              style={{ flex: 1, backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, padding: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
                   <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 15 }}>Week {currentWeek}</Text>
@@ -1181,12 +1423,12 @@ function Root() {
                 </View>
               </View>
               <View style={{ height: 4, backgroundColor: '#2a2a4a', borderRadius: 2, marginBottom: 6 }}>
-                <View style={{ height: 4, backgroundColor: '#4a90e2', borderRadius: 2, width: `${Math.round(((currentWeek - 1) / TOTAL_WEEKS + (workoutExercises.filter(e => (logs[logKey(selectedDay.day, e)] || []).length > 0).length / Math.max(workoutExercises.length, 1)) / TOTAL_WEEKS) * 100)}%` }} />
+                <View style={{ height: 4, backgroundColor: '#4a90e2', borderRadius: 2, width: `${Math.round(((currentWeek - 1) / TOTAL_WEEKS + (workoutExercises.filter(e => (logs[logKey(selectedDay.day, e)] || []).some(en => en.programWeek === currentWeek)).length / Math.max(workoutExercises.length, 1)) / TOTAL_WEEKS) * 100)}%` }} />
               </View>
               <Text style={{ color: COLORS.muted, fontSize: 11 }}>
                 <Text style={{ color: COLORS.text, fontWeight: '600' }}>{loggedCount} / {totalExercises}</Text> Exercises Logged
               </Text>
-            </View>
+            </TouchableOpacity>
             <View style={{ alignItems: 'center', justifyContent: 'center', width: 70, height: 70 }}>
               <CircularProgress progress={progressFraction} size={70} strokeWidth={6} />
               <View style={{ position: 'absolute', alignItems: 'center' }}>
@@ -1198,7 +1440,7 @@ function Root() {
         )}
 
         {/* Inline rest banner — always visible on workout days */}
-        {!isRestDay && (() => {
+        {!isRestDay && restTimerEnabled && (() => {
           const activeEx = workoutExercises[activeExerciseIndex] ?? workoutExercises[0];
           const bannerName = restTimerRunning && restingForExercise
             ? cleanExerciseName(restingForExercise)
@@ -1264,6 +1506,7 @@ function Root() {
             keyExtractor={(_, i) => i.toString()}
             renderItem={({ item, index }) => {
               const entryLogs = logs[logKey(selectedDay.day, item)] || [];
+              const thisWeekLogs = entryLogs.filter(e => e.programWeek === currentWeek);
               const isStretching = item.includes('Full Body Stretching');
               const isFoamRolling = item.includes('Full Body Foam Rolling');
               const isResting = restTimerRunning && restingForExercise === item;
@@ -1291,7 +1534,7 @@ function Root() {
               ];
               return (
                 <TouchableOpacity
-                  style={[styles.exerciseCard, isActive && { borderLeftWidth: 3, borderLeftColor: COLORS.accent }, isResting && { borderColor: '#4ade8044', borderWidth: 1 }]}
+                  style={[styles.exerciseCard, { position: 'relative' }, isActive && { borderLeftWidth: 3, borderLeftColor: COLORS.accent }, isResting && { borderColor: '#4ade8044', borderWidth: 1 }]}
                   onPress={() => {
                     if (!isStretching && !isFoamRolling && !isRestDay) {
                       setSelectedExercise(item);
@@ -1311,6 +1554,11 @@ function Root() {
                   }}
                   activeOpacity={(isStretching || isFoamRolling || isRestDay) ? 1 : 0.75}
                 >
+                  {!isStretching && !isFoamRolling && !isRestDay && thisWeekLogs.length > 0 && (
+                    <View style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, width: 20, height: 20, borderRadius: 10, backgroundColor: '#4ade80', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ color: '#000', fontSize: 12, fontWeight: '800', lineHeight: 15 }}>✓</Text>
+                    </View>
+                  )}
                   <View style={[styles.exerciseCardTop, (isStretching || isFoamRolling) && { justifyContent: 'center' }]}>
                     {!isStretching && !isFoamRolling && <ExerciseImage exerciseName={item} exerciseDbImages={exerciseDbImages} />}
                     <View style={[styles.exerciseCardInfo, (isStretching || isFoamRolling) && { alignItems: 'center' }]}>
@@ -1329,9 +1577,7 @@ function Root() {
                       {!isRestDay && !isStretching && !isFoamRolling && (
                         isResting
                           ? <Text style={{ color: '#4ade80', fontSize: 12, fontWeight: '600', marginTop: 2 }}>Resting • {formatTime(restTimerRemaining)}</Text>
-                          : entryLogs.length === 0
-                            ? <Text style={styles.logCount}>No logs yet</Text>
-                            : null
+                          : <Text style={styles.logCount}>{thisWeekLogs.length === 0 ? 'No logs yet' : ' '}</Text>
                       )}
                       {restLabel && !isResting && (
                         <Text style={{ color: COLORS.muted, fontSize: 11, marginTop: 2 }}>⏱ {restLabel}</Text>
@@ -1376,23 +1622,6 @@ function Root() {
           />
         </View>
 
-        {/* Finish Workout bar */}
-        {!isRestDay && (
-          <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 12 }}>
-            <TouchableOpacity
-              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 15, gap: 10 }}
-              onPress={() => Alert.alert('Finish Workout', 'Great work! Workout complete.', [{ text: 'Done', onPress: () => setScreen('plan') }])}
-            >
-              <View style={{ width: 0, height: 0, borderTopWidth: 8, borderBottomWidth: 8, borderLeftWidth: 13, borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: '#fff' }} />
-              <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 16 }}>Finish Workout</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{ width: 52, backgroundColor: '#2a2a4a', borderRadius: 14, justifyContent: 'center', alignItems: 'center' }}
-            >
-              <Text style={{ fontSize: 20 }}>🚩</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         <Modal visible={!!stretchImgModal} transparent animationType="fade">
           <TouchableOpacity style={styles.imgModalOverlay} onPress={() => setStretchImgModal(null)} activeOpacity={1}>
@@ -1412,9 +1641,54 @@ function Root() {
   // ── Progress Screen ──────────────────────────────────────
   if (screen === 'progress') {
     const data = logs[logKey(selectedDay.day, selectedExercise)] || [];
+    const thisWeekData = data.filter(e =>
+      e.programWeek !== undefined ? e.programWeek === currentWeek : e.week === currentWeek
+    );
+    const hasThisWeekLog = thisWeekData.length > 0;
+    const maxLoggedWeek = data.length > 0
+      ? Math.max(...data.map(en => en.programWeek !== undefined ? en.programWeek : en.week))
+      : 0;
+    const canLogThisWeek = currentWeek <= maxLoggedWeek + 1;
     const latest = data.length > 0 ? data[data.length - 1].weight : null;
     const first = data.length > 1 ? data[0].weight : null;
     const totalChange = first && latest ? (parseFloat(latest) - parseFloat(first)).toFixed(1) : null;
+
+    const dayExercises = (selectedDay?.exercises || []).filter(e =>
+      !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
+    );
+    const exIdx = dayExercises.indexOf(selectedExercise);
+
+    function resetSetsForWeek(newWeek) {
+      const sr = parseSetsReps(selectedExercise);
+      const count = sr ? parseInt(sr.sets) : 3;
+      const allLogs = logs[logKey(selectedDay.day, selectedExercise)] || [];
+      const weekEntry = allLogs.find(en =>
+        en.programWeek !== undefined ? en.programWeek === newWeek : en.week === newWeek
+      );
+      const lastEntry = weekEntry || (allLogs.length > 0 ? allLogs[allLogs.length - 1] : null);
+      const fallbackReps = lastEntry?.reps || (sr ? sr.reps.split('-')[0] : '');
+      setSessionSets(Array.from({ length: count }, (_, idx) => ({
+        weight: lastEntry?.sets?.[idx]?.weight || lastEntry?.weight || '',
+        reps: lastEntry?.sets?.[idx]?.reps || fallbackReps,
+        completed: false,
+      })));
+    }
+
+    function navigateExercise(newIdx) {
+      const newEx = dayExercises[newIdx];
+      setSelectedExercise(newEx);
+      setActiveExerciseIndex(newIdx);
+      const sr = parseSetsReps(newEx);
+      const count = sr ? parseInt(sr.sets) : 3;
+      const lastLogs = logs[logKey(selectedDay.day, newEx)] || [];
+      const lastEntry = lastLogs.length > 0 ? lastLogs[lastLogs.length - 1] : null;
+      const fallbackReps = lastEntry?.reps || (sr ? sr.reps.split('-')[0] : '');
+      setSessionSets(Array.from({ length: count }, (_, idx) => ({
+        weight: lastEntry?.sets?.[idx]?.weight || lastEntry?.weight || '',
+        reps: lastEntry?.sets?.[idx]?.reps || fallbackReps,
+        completed: false,
+      })));
+    }
 
     return (
       <View style={styles.container}>
@@ -1426,7 +1700,7 @@ function Root() {
         </View>
 
         {/* Rest timer banner on progress screen */}
-        {(() => {
+        {restTimerEnabled && (() => {
           const suggested = getRestSuggestion(selectedExercise);
           const isRunning = restTimerRunning && restingForExercise === selectedExercise;
           const progressWidth = isRunning ? `${(restTimerRemaining / restTimerDuration) * 100}%` : '0%';
@@ -1481,6 +1755,34 @@ function Root() {
         })()}
 
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+          {/* Week selector */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12 }}>
+            <TouchableOpacity onPress={() => { const w = Math.max(1, currentWeek - 1); setCurrentWeek(w); resetSetsForWeek(w); }} style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: currentWeek > 1 ? 1 : 0.35 }}>
+              <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '700', lineHeight: 22 }}>‹</Text>
+            </TouchableOpacity>
+            <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 15 }}>
+              Week <Text style={{ color: '#4a90e2' }}>{currentWeek}</Text>
+              <Text style={{ color: COLORS.muted, fontWeight: 'normal', fontSize: 13 }}> of {TOTAL_WEEKS}</Text>
+            </Text>
+            <TouchableOpacity onPress={() => { const w = Math.min(TOTAL_WEEKS, currentWeek + 1); setCurrentWeek(w); resetSetsForWeek(w); }} style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: currentWeek < TOTAL_WEEKS ? 1 : 0.35 }}>
+              <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '700', lineHeight: 22 }}>›</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Exercise selector */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12 }}>
+            <TouchableOpacity onPress={() => exIdx > 0 && navigateExercise(exIdx - 1)} style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: exIdx > 0 ? 1 : 0.35 }}>
+              <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '700', lineHeight: 22 }}>‹</Text>
+            </TouchableOpacity>
+            <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 15, flex: 1, textAlign: 'center', paddingHorizontal: 8 }} numberOfLines={1}>
+              <Text style={{ color: '#4a90e2' }}>{cleanExerciseName(selectedExercise)}</Text>
+              <Text style={{ color: COLORS.muted, fontWeight: 'normal', fontSize: 13 }}> ({exIdx + 1}/{dayExercises.length})</Text>
+            </Text>
+            <TouchableOpacity onPress={() => exIdx < dayExercises.length - 1 && navigateExercise(exIdx + 1)} style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: exIdx < dayExercises.length - 1 ? 1 : 0.35 }}>
+              <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '700', lineHeight: 22 }}>›</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Header */}
           <View style={styles.progressHeader}>
             <ExerciseImage exerciseName={selectedExercise} exerciseDbImages={exerciseDbImages} size={160} />
@@ -1518,7 +1820,16 @@ function Root() {
           )}
 
           {/* Log Sets */}
-          <View style={{ backgroundColor: '#1c1c3a55', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, padding: 14, marginBottom: 16 }}>
+          {!hasThisWeekLog && !canLogThisWeek && (
+            <View style={{ backgroundColor: '#1c1c3a55', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, padding: 16, marginBottom: 16, alignItems: 'center', gap: 6 }}>
+              <Text style={{ fontSize: 22 }}>🔒</Text>
+              <Text style={{ color: COLORS.text, fontWeight: '700', fontSize: 15 }}>Week {currentWeek} Locked</Text>
+              <Text style={{ color: COLORS.muted, fontSize: 13, textAlign: 'center' }}>
+                Complete Week {maxLoggedWeek + 1} first before logging this week.
+              </Text>
+            </View>
+          )}
+          {!hasThisWeekLog && canLogThisWeek && <View style={{ backgroundColor: '#1c1c3a55', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, padding: 14, marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
                 <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 16 }}>Log Sets</Text>
@@ -1556,17 +1867,7 @@ function Root() {
                   </>
                 ) : (
                   <>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 0 }}>
-                      <TouchableOpacity
-                        style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}
-                        onPress={() => {
-                          const s = [...sessionSets];
-                          s[i] = { ...s[i], weight: String(Math.max(0, (parseFloat(s[i].weight) || 0) - 5)) };
-                          setSessionSets(s);
-                        }}
-                      >
-                        <Text style={{ color: COLORS.accent, fontSize: 10 }}>−5</Text>
-                      </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                       <TouchableOpacity
                         style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}
                         onPress={() => {
@@ -1587,13 +1888,7 @@ function Root() {
                       />
                     </View>
                     <Text style={{ color: COLORS.muted, fontSize: 10 }}>lbs ×</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 0 }}>
-                      <TouchableOpacity
-                        style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}
-                        onPress={() => { const s = [...sessionSets]; s[i] = { ...s[i], reps: String(Math.max(0, (parseInt(s[i].reps) || 0) - 1)) }; setSessionSets(s); }}
-                      >
-                        <Text style={{ color: COLORS.accent, fontSize: 12 }}>−1</Text>
-                      </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                       <TouchableOpacity
                         style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}
                         onPress={() => { const s = [...sessionSets]; s[i] = { ...s[i], reps: String((parseInt(s[i].reps) || 0) + 1) }; setSessionSets(s); }}
@@ -1620,11 +1915,13 @@ function Root() {
                             s[i + 1] = { ...s[i + 1], weight: set.weight };
                           }
                           setSessionSets(s);
-                          const suggested = getRestSuggestion(selectedExercise);
-                          setRestingForExercise(selectedExercise);
-                          setRestTimerDuration(suggested);
-                          setRestTimerRemaining(suggested);
-                          setRestTimerRunning(true);
+                          if (restTimerEnabled) {
+                            const suggested = getRestSuggestion(selectedExercise);
+                            setRestingForExercise(selectedExercise);
+                            setRestTimerDuration(suggested);
+                            setRestTimerRemaining(suggested);
+                            setRestTimerRunning(true);
+                          }
                         }
                       }}
                     />
@@ -1642,15 +1939,29 @@ function Root() {
                 const key = logKey(selectedDay.day, selectedExercise);
                 const existing = logs[key] || [];
                 const allSets = sessionSets.map((s, idx) => s.completed ? { weight: s.weight, reps: s.reps } : (existing[existing.length - 1]?.sets?.[idx] || { weight: '', reps: '' }));
-                setLogs(prev => ({ ...prev, [key]: [...existing, { week: existing.length + 1, weight: String(maxWeight), reps: bestSet.reps, sets: allSets }] }));
-                const sr = parseSetsReps(selectedExercise);
-                const count = sr ? parseInt(sr.sets) : 3;
-                setSessionSets(Array.from({ length: count }, (_, idx) => ({ weight: allSets[idx]?.weight || String(maxWeight), reps: allSets[idx]?.reps || bestSet.reps, completed: false })));
+                const newEntry = { week: existing.length + 1, programWeek: currentWeek, weight: String(maxWeight), reps: bestSet.reps, sets: allSets };
+                const updatedLogs = { ...logs, [key]: [...existing, newEntry] };
+                setLogs(updatedLogs);
+                const dayExs = (selectedDay?.exercises || []).filter(e =>
+                  !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
+                );
+                const allLogged = dayExs.every(e =>
+                  (updatedLogs[logKey(selectedDay.day, e)] || []).some(en =>
+                    en.programWeek !== undefined ? en.programWeek === currentWeek : en.week === currentWeek
+                  )
+                );
+                if (allLogged) {
+                  setShowDayComplete(true);
+                } else {
+                  const sr = parseSetsReps(selectedExercise);
+                  const count = sr ? parseInt(sr.sets) : 3;
+                  setSessionSets(Array.from({ length: count }, (_, idx) => ({ weight: allSets[idx]?.weight || String(maxWeight), reps: allSets[idx]?.reps || bestSet.reps, completed: false })));
+                }
               }}
             >
               <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 15 }}>Save Sets</Text>
             </TouchableOpacity>
-          </View>
+          </View>}
 
           {/* Log History */}
           {data.length > 0 ? (
@@ -1706,7 +2017,7 @@ function Root() {
                       )}
                       {topSet && sets.length > 0 && (
                         <Text style={{ color: COLORS.muted, fontSize: 13, marginBottom: 2 }}>
-                          Top Set <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{topSet.weight} × {topSet.reps}</Text> lbs
+                          Top Set <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{topSet.weight}</Text> lbs × <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{topSet.reps}</Text> reps
                         </Text>
                       )}
                       {volume > 0 && (
@@ -1735,6 +2046,29 @@ function Root() {
             </>
           ) : null}
         </ScrollView>
+
+        {/* Day complete modal */}
+        <Modal visible={showDayComplete} transparent animationType="fade">
+          <View style={{ flex: 1, backgroundColor: '#000000ee', justifyContent: 'center', alignItems: 'center', padding: 32 }}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', width: 220, height: 220 }}>
+              <CircularProgress progress={1} size={220} strokeWidth={16} />
+              <View style={{ position: 'absolute', alignItems: 'center' }}>
+                <Text style={{ color: '#4ade80', fontSize: 38, fontWeight: 'bold' }}>100%</Text>
+                <Text style={{ color: COLORS.muted, fontSize: 13 }}>Complete</Text>
+              </View>
+            </View>
+            <Text style={{ color: '#fff', fontSize: 26, fontWeight: '800', textAlign: 'center', marginTop: 28 }}>🎉 Workout Complete!</Text>
+            <Text style={{ color: COLORS.muted, fontSize: 15, textAlign: 'center', marginTop: 8 }}>
+              All exercises logged for Week {currentWeek}. Great work!
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowDayComplete(false)}
+              style={{ marginTop: 36, backgroundColor: '#4ade80', borderRadius: 14, paddingVertical: 14, paddingHorizontal: 48 }}
+            >
+              <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
 
       </View>
     );
