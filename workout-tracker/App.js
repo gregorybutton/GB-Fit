@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -125,6 +125,64 @@ const EXERCISE_NOTES = {
   'Pec Deck':                  'Adjust the seat so handles are at chest height. Keep a slight bend in the elbows and lead with your elbows — not your hands. Squeeze the chest hard at the peak contraction, then return slowly for a full stretch. Don\'t let the weight snap back.',
   'Bent Over Barbell Row':     'Hinge at the hips until torso is roughly parallel to the floor, slight knee bend. Brace your core and keep your back flat throughout. Pull the bar to your lower chest, driving elbows back and squeezing the shoulder blades together at the top. Lower with control — don\'t let your back round on the descent.',
   'Cable Tricep Pushdown':    'Set the cable to a high pulley with a rope or bar attachment. Keep elbows tucked at your sides throughout — they should not move. Push down to full extension and squeeze the triceps hard at the bottom. Return slowly, allowing a full stretch at the top before the next rep.',
+};
+
+const EXERCISE_WEIGHT_RANGES = {
+  'Incline Bench Press':              { min: 45,  max: 315 },
+  'Flat Bench Press':                 { min: 45,  max: 315 },
+  'Weighted Pull Ups':                { min: 0,   max: 100 },
+  'Bent Over Barbell Row':            { min: 45,  max: 275 },
+  'Pec Deck':                         { min: 20,  max: 200 },
+  'Cable Single Arm Lateral Raise':   { min: 5,   max: 80  },
+  'Seated Lateral Raise':             { min: 5,   max: 80  },
+  'Cable Tricep Pushdown':            { min: 10,  max: 150 },
+  'Overhead Extension':               { min: 10,  max: 120 },
+  'EZ Bar Seated Curl':               { min: 20,  max: 120 },
+  'Machine Preacher Curl':            { min: 20,  max: 150 },
+  'Barbell Back Squat':               { min: 45,  max: 405 },
+  'Romanian Deadlift':                { min: 45,  max: 315 },
+  'Leg Press':                        { min: 45,  max: 500 },
+  'Linear Hack Squat':                { min: 45,  max: 500 },
+  'Lying Leg Curl':                   { min: 20,  max: 200 },
+  'Kneeling Leg Curl':                { min: 20,  max: 150 },
+  'Leg Extension':                    { min: 20,  max: 200 },
+  'Hip Adduction':                    { min: 20,  max: 200 },
+  'Standing Calf Raise':              { min: 20,  max: 300 },
+  'Machine Shoulder Press':           { min: 20,  max: 250 },
+  'Neutral Grip Lat Pulldown':        { min: 30,  max: 250 },
+  'Dumbbell Row with Chest Support':  { min: 15,  max: 150 },
+  'Cable Seated Row':                 { min: 20,  max: 200 },
+  'Reverse Cable Flyes':              { min: 5,   max: 100 },
+  'Shrugs':                           { min: 45,  max: 405 },
+};
+
+const EXERCISE_MUSCLES = {
+  'Incline Bench Press':             'Chest',
+  'Flat Bench Press':                'Chest',
+  'Pec Deck':                        'Chest',
+  'Weighted Pull Ups':               'Back',
+  'Bent Over Barbell Row':           'Back',
+  'Neutral Grip Lat Pulldown':       'Back',
+  'Dumbbell Row with Chest Support': 'Back',
+  'Cable Seated Row':                'Back',
+  'Reverse Cable Flyes':             'Back',
+  'Cable Single Arm Lateral Raise':  'Shoulders',
+  'Seated Lateral Raise':            'Shoulders',
+  'Machine Shoulder Press':          'Shoulders',
+  'Cable Tricep Pushdown':           'Triceps',
+  'Overhead Extension':              'Triceps',
+  'EZ Bar Seated Curl':              'Biceps',
+  'Machine Preacher Curl':           'Biceps',
+  'Shrugs':                          'Traps',
+  'Barbell Back Squat':              'Quads',
+  'Leg Press':                       'Quads',
+  'Linear Hack Squat':               'Quads',
+  'Leg Extension':                   'Quads',
+  'Romanian Deadlift':               'Hamstrings',
+  'Lying Leg Curl':                  'Hamstrings',
+  'Kneeling Leg Curl':               'Hamstrings',
+  'Hip Adduction':                   'Adductors',
+  'Standing Calf Raise':             'Calves',
 };
 
 // Local images — all commented out to use ExerciseDB API instead.
@@ -397,6 +455,7 @@ class ErrorBoundary extends React.Component {
 }
 
 function Root() {
+  const { height: screenHeight } = useWindowDimensions();
   const [textVal, setTextVal] = useState('');
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -405,6 +464,7 @@ function Root() {
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [logs, setLogs] = useState({});
+  const [completedWorkouts, setCompletedWorkouts] = useState({});
 
   const [nutritionForm, setNutritionForm] = useState({ age: '', gender: '', heightFt: '', heightIn: '', weight: '', activityLevel: '' });
   const [nutritionResult, setNutritionResult] = useState(null);
@@ -418,6 +478,9 @@ function Root() {
   const [sessionSets, setSessionSets] = useState([]);
   const [weightPickerVisible, setWeightPickerVisible] = useState(false);
   const [weightPickerIndex, setWeightPickerIndex] = useState(null);
+  const weightListRef = useRef(null);
+  const [repsPickerVisible, setRepsPickerVisible] = useState(false);
+  const [repsPickerIndex, setRepsPickerIndex] = useState(null);
   const [authForm, setAuthForm] = useState({ name: '', email: 'gbutton11@hotmail.com', password: 'Unicycle12!', gender: '' });
   const [authError, setAuthError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -429,7 +492,10 @@ function Root() {
   const [settingsFrom, setSettingsFrom] = useState('plan');
   const [restTimerEnabled, setRestTimerEnabled] = useState(true);
   const [showDayComplete, setShowDayComplete] = useState(false);
+  const [showCompleteButton, setShowCompleteButton] = useState(false);
   const [showSwitchSides, setShowSwitchSides] = useState(false);
+  const [editingEntryIndex, setEditingEntryIndex] = useState(null);
+  const [editSets, setEditSets] = useState([]);
   const [stretchEachSide, setStretchEachSide] = useState(false);
 
   useEffect(() => {
@@ -437,8 +503,10 @@ function Root() {
       AsyncStorage.getItem('logs'),
       AsyncStorage.getItem('user'),
       AsyncStorage.getItem('restTimerEnabled'),
-    ]).then(([logsVal, userVal, restTimerVal]) => {
+      AsyncStorage.getItem('completedWorkouts'),
+    ]).then(([logsVal, userVal, restTimerVal, completedVal]) => {
       if (logsVal) setLogs(JSON.parse(logsVal));
+      if (completedVal) setCompletedWorkouts(JSON.parse(completedVal));
       if (restTimerVal !== null) setRestTimerEnabled(JSON.parse(restTimerVal));
       if (userVal) {
         const savedUser = JSON.parse(userVal);
@@ -478,6 +546,7 @@ function Root() {
       Vibration.vibrate([0, 200, 100, 200, 100, 400]);
     }
   }
+
 
   useEffect(() => {
     if (!restTimerRunning || !stretchEachSide || restTimerDuration === 0) return;
@@ -558,12 +627,23 @@ function Root() {
       setAuthError('Password must be at least 6 characters.');
       return;
     }
-    const newUser = { name, email, password, gender };
-    AsyncStorage.setItem('user', JSON.stringify(newUser));
-    setUser(newUser);
-    setAnswers({ name });
-    setAuthError('');
-    setScreen('quiz');
+    AsyncStorage.getItem('users').then(val => {
+      const users = val ? JSON.parse(val) : [];
+      if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+        setAuthError('An account with this email already exists.');
+        return;
+      }
+      const newUser = { name, email, password, gender };
+      const updated = [...users, newUser];
+      AsyncStorage.setItem('users', JSON.stringify(updated));
+      AsyncStorage.setItem('user', JSON.stringify(newUser));
+      AsyncStorage.setItem('restTimerEnabled', 'true');
+      setUser(newUser);
+      setRestTimerEnabled(true);
+      setAnswers({ name });
+      setAuthError('');
+      setScreen('quiz');
+    });
   }
 
   function handleLogin() {
@@ -572,15 +652,28 @@ function Root() {
       setAuthError('Please enter your email and password.');
       return;
     }
-    AsyncStorage.getItem('user').then(val => {
-      if (!val) { setAuthError('No account found. Please register.'); return; }
-      const saved = JSON.parse(val);
-      if (saved.email !== email || saved.password !== password) {
-        setAuthError('Incorrect email or password.');
+    AsyncStorage.getItem('users').then(val => {
+      const users = val ? JSON.parse(val) : [];
+      // Fall back to legacy single-user key if no users array yet
+      if (users.length === 0) {
+        AsyncStorage.getItem('user').then(legacy => {
+          if (!legacy) { setAuthError('No account found. Please register.'); return; }
+          const saved = JSON.parse(legacy);
+          if (saved.email !== email || saved.password !== password) { setAuthError('Incorrect email or password.'); return; }
+          // Migrate to users array
+          AsyncStorage.setItem('users', JSON.stringify([saved]));
+          setUser(saved);
+          setAnswers({ name: saved.name });
+          setAuthError('');
+          setScreen('quiz');
+        });
         return;
       }
-      setUser(saved);
-      setAnswers({ name: saved.name });
+      const found = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+      if (!found) { setAuthError('Incorrect email or password.'); return; }
+      AsyncStorage.setItem('user', JSON.stringify(found));
+      setUser(found);
+      setAnswers({ name: found.name });
       setAuthError('');
       setScreen('quiz');
     });
@@ -685,19 +778,41 @@ function Root() {
   if (screen === 'register') {
     return (
       <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} keyboardShouldPersistTaps="handled">
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Start tracking your workouts</Text>
-          <View style={styles.questionCard}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled">
+          {/* Logo */}
+          <View style={{ alignItems: 'center', marginBottom: 32 }}>
+            <View style={{
+              width: 90, height: 90, borderRadius: 45,
+              backgroundColor: '#2a0a10',
+              borderWidth: 2, borderColor: COLORS.accent,
+              justifyContent: 'center', alignItems: 'center',
+              shadowColor: COLORS.accent, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 20,
+              elevation: 12,
+            }}>
+              <Text style={{ fontSize: 38 }}>🏋️</Text>
+            </View>
+          </View>
+
+          <Text style={{ color: COLORS.text, fontSize: 30, fontWeight: 'bold', textAlign: 'center', marginBottom: 8 }}>Create Account</Text>
+          <Text style={{ color: COLORS.muted, fontSize: 15, textAlign: 'center', marginBottom: 36 }}>Start tracking your workouts</Text>
+
+          {/* Full Name */}
+          <View style={styles.authField}>
+            <Text style={{ color: COLORS.muted, fontSize: 16, marginRight: 12 }}>👤</Text>
             <TextInput
-              style={styles.input}
+              style={styles.authInput}
               placeholder="Full Name"
               placeholderTextColor={COLORS.muted}
               value={authForm.name}
               onChangeText={v => setAuthForm(f => ({ ...f, name: v }))}
             />
+          </View>
+
+          {/* Email */}
+          <View style={styles.authField}>
+            <Text style={{ color: COLORS.muted, fontSize: 16, marginRight: 12 }}>✉</Text>
             <TextInput
-              style={styles.input}
+              style={styles.authInput}
               placeholder="Email"
               placeholderTextColor={COLORS.muted}
               value={authForm.email}
@@ -705,34 +820,64 @@ function Root() {
               keyboardType="email-address"
               autoCapitalize="none"
             />
+          </View>
+
+          {/* Password */}
+          <View style={styles.authField}>
+            <Text style={{ color: COLORS.muted, fontSize: 16, marginRight: 12 }}>🔒</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.authInput, { flex: 1 }]}
               placeholder="Password"
               placeholderTextColor={COLORS.muted}
               value={authForm.password}
               onChangeText={v => setAuthForm(f => ({ ...f, password: v }))}
-              secureTextEntry
+              secureTextEntry={!showPassword}
             />
-            <Text style={[styles.questionText, { fontSize: 15, marginTop: 8 }]}>Gender</Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
-              {['Male', 'Female'].map(g => (
-                <TouchableOpacity
-                  key={g}
-                  style={[styles.button, { flex: 1, backgroundColor: authForm.gender === g ? COLORS.accent : COLORS.input }]}
-                  onPress={() => setAuthForm(f => ({ ...f, gender: g }))}
-                >
-                  <Text style={styles.buttonText}>{g}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            {authError ? <Text style={styles.authError}>{authError}</Text> : null}
-            <TouchableOpacity style={styles.button} onPress={handleRegister}>
-              <Text style={styles.buttonText}>Create Account</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setAuthError(''); setScreen('login'); }} style={{ marginTop: 16, alignItems: 'center' }}>
-              <Text style={{ color: COLORS.muted }}>Already have an account? <Text style={{ color: COLORS.accent }}>Log in</Text></Text>
+            <TouchableOpacity
+              style={{ backgroundColor: COLORS.accent, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 }}
+              onPress={() => setShowPassword(s => !s)}
+            >
+              <Text style={{ color: COLORS.text, fontSize: 12, fontWeight: '700' }}>{showPassword ? 'Hide' : 'Show'}</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Gender */}
+          <Text style={{ color: COLORS.muted, fontSize: 14, fontWeight: '600', marginBottom: 10, letterSpacing: 0.5 }}>GENDER</Text>
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
+            {['Male', 'Female'].map(g => (
+              <TouchableOpacity
+                key={g}
+                style={{
+                  flex: 1, borderRadius: 14, paddingVertical: 14, alignItems: 'center',
+                  backgroundColor: authForm.gender === g ? COLORS.accent : '#1c1c3a',
+                  borderWidth: 1, borderColor: authForm.gender === g ? COLORS.accent : '#2a2a4a',
+                }}
+                onPress={() => setAuthForm(f => ({ ...f, gender: g }))}
+              >
+                <Text style={{ color: authForm.gender === g ? COLORS.text : COLORS.muted, fontWeight: '700', fontSize: 15 }}>{g}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {authError ? <Text style={[styles.authError, { marginBottom: 12 }]}>{authError}</Text> : null}
+
+          {/* Create Account button */}
+          <TouchableOpacity
+            style={{ backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 17, alignItems: 'center', marginBottom: 20 }}
+            onPress={handleRegister}
+          >
+            <Text style={{ color: COLORS.text, fontSize: 17, fontWeight: 'bold' }}>Create Account</Text>
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={{ height: 1, backgroundColor: '#2a2a4a', marginBottom: 20 }} />
+
+          {/* Log in link */}
+          <TouchableOpacity onPress={() => { setAuthError(''); setScreen('login'); }} style={{ alignItems: 'center' }}>
+            <Text style={{ color: COLORS.muted, fontSize: 14 }}>
+              Already have an account?{'  '}<Text style={{ color: COLORS.accent, fontWeight: '600' }}>Log in</Text>
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     );
@@ -1203,6 +1348,11 @@ function Root() {
                 onValueChange={v => {
                   setRestTimerEnabled(v);
                   AsyncStorage.setItem('restTimerEnabled', JSON.stringify(v));
+                  if (!v) {
+                    setRestTimerRunning(false);
+                    setRestTimerRemaining(0);
+                    setRestingForExercise(null);
+                  }
                 }}
                 trackColor={{ false: '#3a3a5a', true: '#4a90e2' }}
                 thumbColor={restTimerEnabled ? '#fff' : '#aaa'}
@@ -1356,9 +1506,11 @@ function Root() {
             const workoutExs = isRestDay ? [] : item.exercises.filter(e =>
               !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
             );
-            const isCompleted = !isRestDay && workoutExs.length > 0 && workoutExs.every(e =>
+            const allLogged = !isRestDay && workoutExs.length > 0 && workoutExs.every(e =>
               (logs[logKey(item.day, e)] || []).some(en => en.programWeek === currentWeek)
             );
+            const wKey = `${item.day}|${currentWeek}`;
+            const isCompleted = allLogged && !!completedWorkouts[wKey];
             const isStarted = !isRestDay && !isCompleted && workoutExs.some(e =>
               (logs[logKey(item.day, e)] || []).some(en => en.programWeek === currentWeek)
             );
@@ -1756,6 +1908,32 @@ function Root() {
           </View>
         </Modal>
 
+        {/* Complete Workout button on day screen */}
+        {(() => {
+          const wKey = `${selectedDay?.day}|${currentWeek}`;
+          const dayAllLogged = !isRestDay && workoutExercises.length > 0 && workoutExercises.every(e =>
+            (logs[logKey(selectedDay.day, e)] || []).some(en => en.programWeek === currentWeek)
+          );
+          const dayExplicitlyDone = !!completedWorkouts[wKey];
+          if (!dayAllLogged || dayExplicitlyDone) return null;
+          return (
+            <View style={{ position: 'absolute', bottom: 32, left: 24, right: 24 }}>
+              <TouchableOpacity
+                style={{ backgroundColor: '#4ade80', borderRadius: 16, paddingVertical: 18, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10, shadowColor: '#4ade80', shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 }}
+                onPress={() => {
+                  const updated = { ...completedWorkouts, [wKey]: true };
+                  setCompletedWorkouts(updated);
+                  AsyncStorage.setItem('completedWorkouts', JSON.stringify(updated));
+                  setShowDayComplete(true);
+                }}
+              >
+                <Text style={{ color: '#000', fontWeight: '800', fontSize: 17 }}>Complete Workout</Text>
+                <Text style={{ color: '#000', fontSize: 17, fontWeight: '800' }}>✓</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        })()}
+
       </View>
     );
   }
@@ -1773,6 +1951,19 @@ function Root() {
     const canLogThisWeek = currentWeek <= maxLoggedWeek + 1;
     const latest = data.length > 0 ? data[data.length - 1].weight : null;
     const first = data.length > 1 ? data[0].weight : null;
+    const workoutKey = `${selectedDay?.day}|${currentWeek}`;
+    const isExplicitlyCompleted = !!completedWorkouts[workoutKey];
+    const allWorkoutLogged = (() => {
+      const dayExs = (selectedDay?.exercises || []).filter(e =>
+        !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
+      );
+      return dayExs.length > 0 && dayExs.every(e =>
+        (logs[logKey(selectedDay.day, e)] || []).some(en =>
+          en.programWeek !== undefined ? en.programWeek === currentWeek : en.week === currentWeek
+        )
+      );
+    })();
+    const shouldShowCompleteBtn = allWorkoutLogged && !isExplicitlyCompleted;
     const totalChange = first && latest ? (parseFloat(latest) - parseFloat(first)).toFixed(1) : null;
 
     const dayExercises = (selectedDay?.exercises || []).filter(e =>
@@ -1974,66 +2165,42 @@ function Root() {
                 <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '600' }}>Reset</Text>
               </TouchableOpacity>
             </View>
-            {sessionSets.map((set, i) => (
-              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 6 }}>
+            {sessionSets.map((set, i) => {
+              const locked = i > 0 && !sessionSets[i - 1].completed;
+              return (
+              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 10, opacity: locked ? 0.35 : 1 }}>
                 <View style={{ backgroundColor: COLORS.accent, borderRadius: 20, paddingHorizontal: 9, paddingVertical: 3, minWidth: 44, alignItems: 'center' }}>
                   <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>SET {i + 1}</Text>
                 </View>
                 {set.completed ? (
                   <>
                     <Text style={{ color: COLORS.text, fontSize: 13, flex: 1 }}>{set.weight} lbs × {set.reps} reps</Text>
-                    <Text style={{ color: COLORS.muted, fontSize: 12, marginRight: 6 }}>{set.weight} / {set.reps}</Text>
-                    <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: '#4ade80', justifyContent: 'center', alignItems: 'center' }}>
-                      <Text style={{ color: '#000', fontSize: 13, fontWeight: 'bold' }}>✓</Text>
+                    <View style={{ backgroundColor: '#4ade8022', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
+                      <Text style={{ color: '#4ade80', fontSize: 12, fontWeight: '700' }}>✓ Done</Text>
                     </View>
                   </>
                 ) : (
                   <>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <TouchableOpacity
-                        style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}
-                        onPress={() => {
-                          const s = [...sessionSets];
-                          s[i] = { ...s[i], weight: String((parseFloat(s[i].weight) || 0) + 5) };
-                          setSessionSets(s);
-                        }}
-                      >
-                        <Text style={{ color: '#4ade80', fontSize: 10 }}>+5</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 4, width: 46, alignItems: 'center' }}
-                        onPress={() => { setWeightPickerIndex(i); setWeightPickerVisible(true); }}
-                      >
-                        <Text style={{ color: set.weight ? COLORS.text : COLORS.muted, fontSize: 13 }}>{set.weight || 'lbs'}</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <Text style={{ color: COLORS.muted, fontSize: 10 }}>lbs ×</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <TouchableOpacity
-                        style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}
-                        onPress={() => { const s = [...sessionSets]; s[i] = { ...s[i], reps: String((parseInt(s[i].reps) || 0) + 1) }; setSessionSets(s); }}
-                      >
-                        <Text style={{ color: '#4ade80', fontSize: 12 }}>+1</Text>
-                      </TouchableOpacity>
-                      <TextInput
-                        style={{ color: COLORS.text, fontSize: 13, backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 4, width: 38, textAlign: 'center' }}
-                        keyboardType="number-pad"
-                        value={set.reps}
-                        onChangeText={v => { const s = [...sessionSets]; s[i] = { ...s[i], reps: v }; setSessionSets(s); }}
-                        placeholder="reps"
-                        placeholderTextColor={COLORS.muted}
-                      />
-                    </View>
-                    <Text style={{ color: COLORS.muted, fontSize: 12 }}>Reps</Text>
                     <TouchableOpacity
-                      style={{ width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: COLORS.muted, justifyContent: 'center', alignItems: 'center' }}
+                      style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 6, width: 62, alignItems: 'center' }}
+                      onPress={() => { if (!locked) { setWeightPickerIndex(i); setWeightPickerVisible(true); } }}
+                    >
+                      <Text style={{ color: set.weight ? COLORS.text : COLORS.muted, fontSize: 13 }}>{set.weight || 'lbs'}</Text>
+                    </TouchableOpacity>
+                    <Text style={{ color: COLORS.muted, fontSize: 11 }}>lbs ×</Text>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 6, width: 42, alignItems: 'center' }}
+                      onPress={() => { if (!locked) { setRepsPickerIndex(i); setRepsPickerVisible(true); } }}
+                    >
+                      <Text style={{ color: set.reps ? COLORS.text : COLORS.muted, fontSize: 13 }}>{set.reps || '—'}</Text>
+                    </TouchableOpacity>
+                    <Text style={{ color: COLORS.muted, fontSize: 11 }}>reps</Text>
+                    <TouchableOpacity
+                      style={{ backgroundColor: set.weight && set.reps ? '#4ade80' : '#2a2a4a', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
                       onPress={() => {
                         if (set.weight && set.reps) {
                           const s = [...sessionSets];
                           s[i] = { ...s[i], completed: true };
-                          if (i + 1 < s.length && !s[i + 1].completed && !s[i + 1].weight) {
-                            s[i + 1] = { ...s[i + 1], weight: set.weight };
-                          }
                           setSessionSets(s);
                           if (restTimerEnabled) {
                             const suggested = getRestSuggestion(selectedExercise);
@@ -2044,11 +2211,14 @@ function Root() {
                           }
                         }
                       }}
-                    />
+                    >
+                      <Text style={{ color: set.weight && set.reps ? '#000' : COLORS.muted, fontSize: 12, fontWeight: '700' }}>Confirm</Text>
+                    </TouchableOpacity>
                   </>
                 )}
               </View>
-            ))}
+              );
+            })}
             <TouchableOpacity
               style={{ backgroundColor: COLORS.accent, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 6 }}
               onPress={() => {
@@ -2071,7 +2241,8 @@ function Root() {
                   )
                 );
                 if (allLogged) {
-                  setShowDayComplete(true);
+                  Vibration.vibrate([0, 60, 40, 80]);
+                  setShowCompleteButton(true);
                 } else {
                   const sr = parseSetsReps(selectedExercise);
                   const count = sr ? parseInt(sr.sets) : 3;
@@ -2097,6 +2268,7 @@ function Root() {
                       { text: 'Clear', style: 'destructive', onPress: () => {
                         setLogs(prev => ({ ...prev, [logKey(selectedDay.day, selectedExercise)]: [] }));
                         setSessionSets(s => s.map(set => ({ ...set, weight: '', completed: false })));
+                        setShowCompleteButton(false);
                       }},
                     ]
                   )}
@@ -2117,49 +2289,55 @@ function Root() {
               const isFirst = i === 0;
               return (
                 <View key={i} style={{ backgroundColor: '#1c1c3a88', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, padding: 14, marginBottom: 10 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-                        <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 16 }}>Week {entry.week}</Text>
-                        <Text style={{ color: COLORS.muted, fontSize: 12 }}>{cleanExerciseName(selectedExercise)}</Text>
-                      </View>
-                      {isPR && !isFirst && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-                          <Text style={{ fontSize: 13 }}>🏆</Text>
-                          <Text style={{ color: '#fbbf24', fontSize: 12, fontWeight: '700' }}>New PR</Text>
-                        </View>
-                      )}
-                      {isFirst && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-                          <Text style={{ fontSize: 13 }}>🏆</Text>
-                          <Text style={{ color: '#fbbf24', fontSize: 12, fontWeight: '700' }}>First Entry</Text>
-                        </View>
-                      )}
-                      {topSet && sets.length > 0 && (
-                        <Text style={{ color: COLORS.muted, fontSize: 13, marginBottom: 2 }}>
-                          Top Set <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{topSet.weight}</Text> lbs × <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{topSet.reps}</Text> reps
-                        </Text>
-                      )}
-                      {volume > 0 && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                          <Text style={{ color: COLORS.muted, fontSize: 13 }}>
-                            Volume <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{volume.toLocaleString()}</Text> lbs
-                          </Text>
-                          {volumeChange !== null && (
-                            <Text style={{ color: volumeChange >= 0 ? '#4ade80' : COLORS.accent, fontSize: 13, fontWeight: '700' }}>
-                              {volumeChange >= 0 ? '+' : ''}{volumeChange} lb
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                      {sets.length > 0 && (
-                        <Text style={{ color: COLORS.muted, fontSize: 11 }}>
-                          {sets.map(s => `${s.weight}×${s.reps}`).join(' · ')}
+                  {/* Header row */}
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+                      <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 16 }}>Week {entry.programWeek ?? entry.week}</Text>
+                      <Text style={{ color: COLORS.muted, fontSize: 12 }}>{cleanExerciseName(selectedExercise)}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => { setEditingEntryIndex(i); setEditSets((entry.sets || []).map(s => ({ weight: s.weight, reps: s.reps }))); }}
+                      style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}
+                    >
+                      <Text style={{ color: '#4a90e2', fontSize: 12, fontWeight: '600' }}>Edit</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {/* Badges */}
+                  {isPR && !isFirst && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                      <Text style={{ fontSize: 13 }}>🏆</Text>
+                      <Text style={{ color: '#fbbf24', fontSize: 12, fontWeight: '700' }}>New PR</Text>
+                    </View>
+                  )}
+                  {isFirst && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                      <Text style={{ fontSize: 13 }}>🏆</Text>
+                      <Text style={{ color: '#fbbf24', fontSize: 12, fontWeight: '700' }}>First Entry</Text>
+                    </View>
+                  )}
+                  {/* Stats */}
+                  {topSet && sets.length > 0 && (
+                    <Text style={{ color: COLORS.muted, fontSize: 13, marginBottom: 2 }}>
+                      Top Set <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{topSet.weight}</Text> lbs × <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{topSet.reps}</Text> reps
+                    </Text>
+                  )}
+                  {volume > 0 && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <Text style={{ color: COLORS.muted, fontSize: 13 }}>
+                        Volume <Text style={{ color: COLORS.text, fontWeight: 'bold' }}>{volume.toLocaleString()}</Text> lbs
+                      </Text>
+                      {volumeChange !== null && (
+                        <Text style={{ color: volumeChange >= 0 ? '#4ade80' : COLORS.accent, fontSize: 13, fontWeight: '700' }}>
+                          {volumeChange >= 0 ? '+' : ''}{volumeChange} lb
                         </Text>
                       )}
                     </View>
-
-                  </View>
+                  )}
+                  {sets.length > 0 && (
+                    <Text style={{ color: COLORS.muted, fontSize: 11 }}>
+                      {sets.map(s => `${s.weight}×${s.reps}`).join(' · ')}
+                    </Text>
+                  )}
                 </View>
               );
             })}
@@ -2167,64 +2345,294 @@ function Root() {
           ) : null}
         </ScrollView>
 
+        {/* Reps Picker Modal */}
+        {(() => {
+          const sr = parseSetsReps(selectedExercise || '');
+          let repOptions = [8, 10, 12];
+          if (sr) {
+            const parts = sr.reps.split('-').map(Number);
+            const lo = parts[0];
+            const hi = parts.length > 1 ? parts[1] : lo;
+            if (hi - lo >= 2) {
+              repOptions = [lo, Math.round((lo + hi) / 2), hi];
+            } else if (hi - lo === 1) {
+              repOptions = [lo, hi, hi + 1];
+            } else {
+              repOptions = [lo - 1, lo, lo + 1];
+            }
+          }
+          const currentReps = repsPickerIndex !== null ? parseInt(sessionSets[repsPickerIndex]?.reps) || null : null;
+          return (
+            <Modal visible={repsPickerVisible} transparent animationType="fade">
+              <TouchableOpacity style={{ flex: 1, backgroundColor: '#000000aa', justifyContent: 'center', alignItems: 'center' }} activeOpacity={1} onPress={() => setRepsPickerVisible(false)}>
+                <View style={{ backgroundColor: '#1c1c3a', borderRadius: 20, paddingVertical: 24, paddingHorizontal: 32, alignItems: 'center', borderWidth: 1, borderColor: '#ffffff10', minWidth: 240 }}>
+                  <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 20 }}>SELECT REPS</Text>
+                  <View style={{ flexDirection: 'row', gap: 12 }}>
+                    {repOptions.map(r => {
+                      const selected = currentReps === r;
+                      return (
+                        <TouchableOpacity
+                          key={r}
+                          onPress={() => {
+                            const s = [...sessionSets];
+                            s[repsPickerIndex] = { ...s[repsPickerIndex], reps: String(r) };
+                            setSessionSets(s);
+                            setRepsPickerVisible(false);
+                          }}
+                          style={{ width: 64, height: 64, borderRadius: 14, backgroundColor: selected ? '#4ade80' : '#2a2a4a', borderWidth: 1, borderColor: selected ? '#4ade80' : '#ffffff15', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <Text style={{ color: selected ? '#000' : COLORS.text, fontSize: 22, fontWeight: '700' }}>{r}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          );
+        })()}
+
         {/* Weight Picker Modal */}
-        <Modal visible={weightPickerVisible} transparent animationType="slide">
+        {(() => {
+          const ITEM_HEIGHT = 52;
+          const exName = cleanExerciseName(selectedExercise || '');
+          const range = EXERCISE_WEIGHT_RANGES[exName] || { min: 5, max: 300 };
+          const steps = [];
+          for (let w = range.min; w <= range.max; w = Math.round((w + 2.5) * 10) / 10) steps.push(w);
+          const ownW = weightPickerIndex !== null ? parseFloat(sessionSets[weightPickerIndex]?.weight) || 0 : 0;
+          let currentW = ownW;
+          let isPreviousSet = false;
+          if (!currentW && weightPickerIndex > 0) {
+            for (let j = weightPickerIndex - 1; j >= 0; j--) {
+              const prev = parseFloat(sessionSets[j]?.weight);
+              if (prev > 0) { currentW = prev; isPreviousSet = true; break; }
+            }
+          }
+          if (!currentW) currentW = range.min;
+          const selectedIdx = Math.max(0, steps.findIndex(w => w >= currentW));
+          return (
+            <Modal
+              visible={weightPickerVisible}
+              transparent
+              animationType="slide"
+              onShow={() => {
+                if (weightListRef.current && steps.length > 0) {
+                  setTimeout(() => {
+                    weightListRef.current?.scrollToIndex({ index: Math.max(0, selectedIdx - 3), animated: false });
+                  }, 50);
+                }
+              }}
+            >
+              <View style={{ flex: 1, backgroundColor: '#000000cc', justifyContent: 'flex-end' }}>
+                <View style={{ height: screenHeight * 0.75, backgroundColor: '#1c1c3a', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#ffffff10' }}>
+                    <Text style={{ color: COLORS.muted, fontSize: 15 }}>Select Weight</Text>
+                    <TouchableOpacity onPress={() => setWeightPickerVisible(false)}>
+                      <Text style={{ color: '#4a90e2', fontSize: 15, fontWeight: '600' }}>Cancel</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <FlatList
+                    ref={weightListRef}
+                    data={steps}
+                    keyExtractor={item => String(item)}
+                    getItemLayout={(_, index) => ({ length: ITEM_HEIGHT, offset: ITEM_HEIGHT * index, index })}
+                    initialScrollIndex={Math.max(0, selectedIdx - 3)}
+                    showsVerticalScrollIndicator={false}
+                    renderItem={({ item: w }) => {
+                      const isSet1NoWeight = weightPickerIndex === 0 && !ownW;
+                      const selected = !isSet1NoWeight && Math.abs(w - currentW) < 0.01;
+                      const showPrevBadge = selected && isPreviousSet;
+                      return (
+                        <TouchableOpacity
+                          onPress={() => {
+                            const s = [...sessionSets];
+                            s[weightPickerIndex] = { ...s[weightPickerIndex], weight: String(w) };
+                            setSessionSets(s);
+                            setWeightPickerVisible(false);
+                          }}
+                          style={{ height: ITEM_HEIGHT, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#ffffff08', backgroundColor: selected ? '#4a90e218' : w % 5 === 0 ? '#ffffff05' : 'transparent' }}
+                        >
+                          <Text style={{ color: selected ? '#4a90e2' : w % 5 === 0 ? '#e0e0ff' : COLORS.muted, fontSize: 18, fontWeight: selected ? '700' : w % 5 === 0 ? '600' : '400' }}>{w % 1 === 0 ? w : w.toFixed(1)} lbs</Text>
+                          {showPrevBadge && (
+                            <View style={{ backgroundColor: '#4a90e222', borderWidth: 1, borderColor: '#4a90e255', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 }}>
+                              <Text style={{ color: '#4a90e2', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 }}>prev set</Text>
+                            </View>
+                          )}
+                          {selected && !showPrevBadge && (
+                            <View style={{ backgroundColor: '#4ade8022', borderWidth: 1, borderColor: '#4ade8055', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 }}>
+                              <Text style={{ color: '#4ade80', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 }}>selected</Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    }}
+                  />
+                </View>
+              </View>
+            </Modal>
+          );
+        })()}
+
+        {/* Edit Log Entry Modal */}
+        <Modal visible={editingEntryIndex !== null} transparent animationType="slide">
           <View style={{ flex: 1, backgroundColor: '#000000cc', justifyContent: 'flex-end' }}>
-            <View style={{ backgroundColor: '#1c1c3a', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#ffffff10' }}>
-                <Text style={{ color: COLORS.muted, fontSize: 15 }}>Select Weight</Text>
-                <TouchableOpacity onPress={() => setWeightPickerVisible(false)}>
-                  <Text style={{ color: '#4a90e2', fontSize: 15, fontWeight: '600' }}>Cancel</Text>
+            <View style={{ backgroundColor: '#12122a', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 }}>
+              <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '800', marginBottom: 16 }}>
+                Edit Week {editingEntryIndex !== null ? (data[editingEntryIndex]?.programWeek ?? data[editingEntryIndex]?.week) : ''} Log
+              </Text>
+              {editSets.map((s, idx) => (
+                <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <Text style={{ color: COLORS.muted, fontSize: 13, width: 40 }}>Set {idx + 1}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: COLORS.muted, fontSize: 10, marginBottom: 2 }}>WEIGHT</Text>
+                    <TextInput
+                      style={{ backgroundColor: '#2a2a4a', color: COLORS.text, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, fontSize: 15, textAlign: 'center' }}
+                      keyboardType="decimal-pad"
+                      value={String(s.weight)}
+                      onChangeText={v => { const arr = [...editSets]; arr[idx] = { ...arr[idx], weight: v }; setEditSets(arr); }}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: COLORS.muted, fontSize: 10, marginBottom: 2 }}>REPS</Text>
+                    <TextInput
+                      style={{ backgroundColor: '#2a2a4a', color: COLORS.text, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, fontSize: 15, textAlign: 'center' }}
+                      keyboardType="number-pad"
+                      value={String(s.reps)}
+                      onChangeText={v => { const arr = [...editSets]; arr[idx] = { ...arr[idx], reps: v }; setEditSets(arr); }}
+                    />
+                  </View>
+                </View>
+              ))}
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+                <TouchableOpacity
+                  onPress={() => setEditingEntryIndex(null)}
+                  style={{ flex: 1, backgroundColor: '#2a2a4a', borderRadius: 12, paddingVertical: 13, alignItems: 'center' }}
+                >
+                  <Text style={{ color: COLORS.text, fontWeight: '600', fontSize: 15 }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (editingEntryIndex === null) return;
+                    const key = logKey(selectedDay.day, selectedExercise);
+                    const updated = (logs[key] || []).map((en, idx2) => {
+                      if (idx2 !== editingEntryIndex) return en;
+                      const allSets = editSets.map(s => ({ weight: s.weight, reps: s.reps }));
+                      const maxWeight = Math.max(...allSets.map(s => parseFloat(s.weight) || 0));
+                      const bestSet = allSets.reduce((b, s) => (parseFloat(s.weight) || 0) >= (parseFloat(b.weight) || 0) ? s : b, allSets[0]);
+                      return { ...en, weight: String(maxWeight), reps: bestSet?.reps || en.reps, sets: allSets };
+                    });
+                    const updatedLogs = { ...logs, [key]: updated };
+                    setLogs(updatedLogs);
+                    AsyncStorage.setItem('logs', JSON.stringify(updatedLogs));
+                    setEditingEntryIndex(null);
+                  }}
+                  style={{ flex: 1, backgroundColor: '#4ade80', borderRadius: 12, paddingVertical: 13, alignItems: 'center' }}
+                >
+                  <Text style={{ color: '#000', fontWeight: '800', fontSize: 15 }}>Save</Text>
                 </TouchableOpacity>
               </View>
-              <ScrollView style={{ maxHeight: 340 }} showsVerticalScrollIndicator={false}>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', padding: 12, gap: 8 }}>
-                  {Array.from({ length: 100 }, (_, i) => (i + 1) * 5).map(w => {
-                    const current = weightPickerIndex !== null ? parseFloat(sessionSets[weightPickerIndex]?.weight) || 0 : 0;
-                    const selected = current === w;
-                    return (
-                      <TouchableOpacity
-                        key={w}
-                        onPress={() => {
-                          const s = [...sessionSets];
-                          s[weightPickerIndex] = { ...s[weightPickerIndex], weight: String(w) };
-                          setSessionSets(s);
-                          setWeightPickerVisible(false);
-                        }}
-                        style={{ width: '18%', paddingVertical: 10, borderRadius: 10, backgroundColor: selected ? '#4ade8033' : '#2a2a4a', borderWidth: 1, borderColor: selected ? '#4ade80' : 'transparent', alignItems: 'center' }}
-                      >
-                        <Text style={{ color: selected ? '#4ade80' : COLORS.text, fontSize: 14, fontWeight: selected ? '700' : '400' }}>{w}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </ScrollView>
             </View>
           </View>
         </Modal>
 
+        {/* Complete Workout button */}
+        {(shouldShowCompleteBtn || showCompleteButton) && (
+          <View style={{ position: 'absolute', bottom: 32, left: 24, right: 24 }}>
+            <TouchableOpacity
+              style={{ backgroundColor: '#4ade80', borderRadius: 16, paddingVertical: 18, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10, shadowColor: '#4ade80', shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 }}
+              onPress={() => {
+                const key = `${selectedDay?.day}|${currentWeek}`;
+                const updated = { ...completedWorkouts, [key]: true };
+                setCompletedWorkouts(updated);
+                AsyncStorage.setItem('completedWorkouts', JSON.stringify(updated));
+                setShowCompleteButton(false);
+                setShowDayComplete(true);
+              }}
+            >
+              <Text style={{ color: '#000', fontWeight: '800', fontSize: 17 }}>Complete Workout</Text>
+              <Text style={{ color: '#000', fontSize: 17, fontWeight: '800' }}>✓</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Day complete modal */}
 
         <Modal visible={showDayComplete} transparent animationType="fade">
-          <View style={{ flex: 1, backgroundColor: '#000000ee', justifyContent: 'center', alignItems: 'center', padding: 32 }}>
-            <View style={{ alignItems: 'center', justifyContent: 'center', width: 220, height: 220 }}>
-              <CircularProgress progress={1} size={220} strokeWidth={16} />
-              <View style={{ position: 'absolute', alignItems: 'center' }}>
-                <Text style={{ color: '#4ade80', fontSize: 38, fontWeight: 'bold' }}>100%</Text>
-                <Text style={{ color: COLORS.muted, fontSize: 13 }}>Complete</Text>
+          {(() => {
+            const dayExs = (selectedDay?.exercises || []).filter(e =>
+              !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
+            );
+            const dayParts = (selectedDay?.day || '').split('–').map(s => s.trim());
+            const dayOfWeek = dayParts[0] || '';
+            const dayLabel = dayParts[1] || dayParts[0] || '';
+            const estMins = dayExs.length * 8;
+            // Total volume & per-muscle volume
+            const muscleVols = {};
+            let totalVol = 0;
+            dayExs.forEach(e => {
+              const entryList = logs[logKey(selectedDay.day, e)] || [];
+              const weekEntry = entryList.find(en =>
+                en.programWeek !== undefined ? en.programWeek === currentWeek : en.week === currentWeek
+              );
+              if (weekEntry?.sets) {
+                const vol = weekEntry.sets.reduce((acc, s) => acc + (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0), 0);
+                totalVol += vol;
+                const muscle = EXERCISE_MUSCLES[cleanExerciseName(e)] || 'Other';
+                muscleVols[muscle] = (muscleVols[muscle] || 0) + vol;
+              }
+            });
+            const maxVol = Math.max(...Object.values(muscleVols), 1);
+            const sortedMuscles = Object.entries(muscleVols).sort((a, b) => b[1] - a[1]).slice(0, 4);
+            return (
+              <View style={{ flex: 1, backgroundColor: '#000000ee', justifyContent: 'center', alignItems: 'center', padding: 28 }}>
+                <View style={{ backgroundColor: '#12122a', borderRadius: 24, padding: 28, width: '100%', borderWidth: 1, borderColor: '#4ade8030' }}>
+                  {/* Header */}
+                  <Text style={{ color: '#4ade80', fontSize: 28, fontWeight: '900', textAlign: 'center' }}>Workout Complete 🎉</Text>
+                  <Text style={{ color: COLORS.text, fontSize: 17, fontWeight: '700', textAlign: 'center', marginTop: 10 }}>
+                    {dayLabel}{dayOfWeek ? <Text style={{ color: COLORS.muted, fontWeight: '400' }}> — {dayOfWeek}</Text> : null}
+                  </Text>
+                  <Text style={{ color: COLORS.muted, fontSize: 13, textAlign: 'center', marginTop: 4 }}>
+                    ~{estMins} min  •  {dayExs.length} exercises  •  Week {currentWeek}
+                  </Text>
+
+                  {/* Divider */}
+                  <View style={{ height: 1, backgroundColor: '#ffffff12', marginVertical: 20 }} />
+
+                  {/* Volume */}
+                  <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>VOLUME LIFTED</Text>
+                  <Text style={{ color: COLORS.text, fontSize: 26, fontWeight: '800', marginBottom: 20 }}>
+                    {totalVol > 0 ? totalVol.toLocaleString() : '—'} <Text style={{ color: COLORS.muted, fontSize: 14, fontWeight: '400' }}>lbs</Text>
+                  </Text>
+
+                  {/* Muscle bars */}
+                  {sortedMuscles.length > 0 && (
+                    <>
+                      <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MUSCLES WORKED</Text>
+                      {sortedMuscles.map(([muscle, vol]) => (
+                        <View key={muscle} style={{ marginBottom: 10 }}>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600' }}>{muscle}</Text>
+                            <Text style={{ color: COLORS.muted, fontSize: 12 }}>{vol.toLocaleString()} lbs</Text>
+                          </View>
+                          <View style={{ height: 6, backgroundColor: '#1e1e3a', borderRadius: 3 }}>
+                            <View style={{ height: 6, backgroundColor: '#4ade80', borderRadius: 3, width: `${Math.round((vol / maxVol) * 100)}%` }} />
+                          </View>
+                        </View>
+                      ))}
+                    </>
+                  )}
+
+                  {/* Save & Exit */}
+                  <TouchableOpacity
+                    onPress={() => { setShowDayComplete(false); setScreen('plan'); }}
+                    style={{ marginTop: 24, backgroundColor: '#4ade80', borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}
+                  >
+                    <Text style={{ color: '#000', fontWeight: '800', fontSize: 16 }}>Save & Exit</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-            <Text style={{ color: '#fff', fontSize: 26, fontWeight: '800', textAlign: 'center', marginTop: 28 }}>🎉 Workout Complete!</Text>
-            <Text style={{ color: COLORS.muted, fontSize: 15, textAlign: 'center', marginTop: 8 }}>
-              All exercises logged for Week {currentWeek}. Great work!
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowDayComplete(false)}
-              style={{ marginTop: 36, backgroundColor: '#4ade80', borderRadius: 14, paddingVertical: 14, paddingHorizontal: 48 }}
-            >
-              <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>Done</Text>
-            </TouchableOpacity>
-          </View>
+            );
+          })()}
         </Modal>
 
       </View>
