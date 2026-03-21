@@ -38,11 +38,11 @@ const WORKOUT_PLANS = {
   'Building Muscle - Men': buildPlan([
     { day: 'Sunday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
     { day: 'Monday – Upper Body', exercises: ['Incline Bench Press 4×6-8', 'Weighted Pull Ups 4×6-8', 'Bent Over Barbell Row 3×8-10', 'Pec Deck 3×10-12', 'Cable Single Arm Lateral Raise 3×12-15', 'Cable Tricep Pushdown 3×10-12', 'EZ Bar Seated Curl 3×10-12'] },
-    { day: 'Tuesday – Lower Body', exercises: ['Lying Leg Curl 2×8', 'Barbell Back Squat 4×5-8', 'Romanian Deadlift 3×8-10', 'Leg Press 3×10-12', 'Standing Calf Raise 4×10-15'] },
+    { day: 'Tuesday – Lower Body', exercises: ['Lying Leg Curl 3×8', 'Barbell Back Squat 4×5-8', 'Romanian Deadlift 3×8-10', 'Leg Press 3×10-12', 'Standing Calf Raise 4×10-15'] },
     { day: 'Wednesday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
     { day: 'Thursday – Push Day', exercises: ['Flat Bench Press 4×5-8', 'Machine Shoulder Press 3×10', 'Pec Deck 3×15', 'Cable Single Arm Lateral Raise 4×12-15', 'Overhead Extension 3×8'] },
-    { day: 'Friday – Pull Day', exercises: ['Neutral Grip Lat Pulldown 3×10', 'Dumbbell Chest Supported Row 3×8', 'Cable Seated Row 2×15', 'Reverse Cable Flyes 3×15', 'Shrugs 4×15', 'EZ Bar Seated Curl 3×10', 'Machine Preacher Curl 3×15'] },
-    { day: 'Saturday – Leg Day', exercises: ['Kneeling Leg Curl 2×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 2×10', 'Hip Adduction 2×10', 'Standing Calf Raise 3×10'] },
+    { day: 'Friday – Pull Day', exercises: ['Neutral Grip Lat Pulldown 3×10', 'Dumbbell Chest Supported Row 3×8', 'Cable Seated Row 3×15', 'Reverse Cable Flyes 3×15', 'Shrugs 4×15', 'EZ Bar Seated Curl 3×10', 'Machine Preacher Curl 3×15'] },
+    { day: 'Saturday – Leg Day', exercises: ['Kneeling Leg Curl 3×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 3×10', 'Hip Adduction 3×10', 'Standing Calf Raise 3×10'] },
   ]),
   'Building Muscle - Women': buildPlan([
     { day: 'Sunday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
@@ -51,7 +51,7 @@ const WORKOUT_PLANS = {
     { day: 'Wednesday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
     { day: 'Thursday – Glute Pump / Isolation', exercises: ['Glute Bridge 4×10-12', 'Step Ups 3×10', 'Cable Glute Kickbacks 3×12-15', 'Hip Abduction Machine 3×15-20', '45° Back Extensions 3×12-15'] },
     { day: 'Friday – Glutes + Quads', exercises: ['Back Squat 4×6-8', 'Leg Press 3×10-12', 'Walking Lunges 3×10', 'Leg Extension 3×12-15', 'Barbell Hip Thrust 3×8-10'] },
-    { day: 'Saturday – Leg Day', exercises: ['Kneeling Leg Curl 2×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 2×10', 'Hip Adduction 2×10', 'Standing Calf Raise 3×10'] },
+    { day: 'Saturday – Leg Day', exercises: ['Kneeling Leg Curl 3×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 3×10', 'Hip Adduction 3×10', 'Standing Calf Raise 3×10'] },
   ]),
 };
 
@@ -130,32 +130,32 @@ const EXERCISE_NOTES = {
 };
 
 const EXERCISE_WEIGHT_RANGES = {
-  'Incline Bench Press':              { min: 45,  max: 315 },
-  'Flat Bench Press':                 { min: 45,  max: 315 },
-  'Weighted Pull Ups':                { min: 0,   max: 100 },
-  'Bent Over Barbell Row':            { min: 45,  max: 275 },
-  'Pec Deck':                         { min: 20,  max: 200 },
-  'Cable Single Arm Lateral Raise':   { min: 5,   max: 80  },
-  'Seated Lateral Raise':             { min: 5,   max: 80  },
-  'Cable Tricep Pushdown':            { min: 10,  max: 150 },
-  'Overhead Extension':               { min: 10,  max: 120 },
+  'Incline Bench Press':              { min: 20,  max: 150 },
+  'Flat Bench Press':                 { min: 45,  max: 405 },
+  'Weighted Pull Ups':                { min: 0,   max: 135 },
+  'Bent Over Barbell Row':            { min: 45,  max: 315 },
+  'Pec Deck':                         { min: 20,  max: 180 },
+  'Cable Single Arm Lateral Raise':   { min: 5,   max: 40  },
+  'Seated Lateral Raise':             { min: 5,   max: 50  },
+  'Cable Tricep Pushdown':            { min: 10,  max: 120 },
+  'Overhead Extension':               { min: 10,  max: 100 },
   'EZ Bar Seated Curl':               { min: 20,  max: 120 },
-  'Machine Preacher Curl':            { min: 20,  max: 150 },
-  'Barbell Back Squat':               { min: 45,  max: 405 },
-  'Romanian Deadlift':                { min: 45,  max: 315 },
-  'Leg Press':                        { min: 45,  max: 500 },
-  'Linear Hack Squat':                { min: 45,  max: 500 },
-  'Lying Leg Curl':                   { min: 20,  max: 200 },
-  'Kneeling Leg Curl':                { min: 20,  max: 150 },
+  'Machine Preacher Curl':            { min: 20,  max: 130 },
+  'Barbell Back Squat':               { min: 45,  max: 495 },
+  'Romanian Deadlift':                { min: 45,  max: 405 },
+  'Leg Press':                        { min: 45,  max: 700 },
+  'Linear Hack Squat':                { min: 45,  max: 600 },
+  'Lying Leg Curl':                   { min: 20,  max: 180 },
+  'Kneeling Leg Curl':                { min: 20,  max: 140 },
   'Leg Extension':                    { min: 20,  max: 200 },
   'Hip Adduction':                    { min: 20,  max: 200 },
-  'Standing Calf Raise':              { min: 20,  max: 300 },
-  'Machine Shoulder Press':           { min: 20,  max: 250 },
-  'Neutral Grip Lat Pulldown':        { min: 30,  max: 250 },
+  'Standing Calf Raise':              { min: 20,  max: 400 },
+  'Machine Shoulder Press':           { min: 20,  max: 200 },
+  'Neutral Grip Lat Pulldown':        { min: 30,  max: 220 },
   'Dumbbell Row with Chest Support':  { min: 15,  max: 150 },
   'Cable Seated Row':                 { min: 20,  max: 200 },
-  'Reverse Cable Flyes':              { min: 5,   max: 100 },
-  'Shrugs':                           { min: 45,  max: 405 },
+  'Reverse Cable Flyes':              { min: 5,   max: 50  },
+  'Shrugs':                           { min: 45,  max: 495 },
 };
 
 const EXERCISE_MUSCLES = {
@@ -521,7 +521,7 @@ function Root() {
             const hasLogs = Object.keys(parsedLogs).some(lk => {
               if (!lk.startsWith(dayTitle + '|')) return false;
               return (parsedLogs[lk] || []).some(en =>
-                en.programWeek !== undefined ? en.programWeek === week : en.week === week
+                en.programWeek === week
               );
             });
             if (hasLogs) validated[key] = true;
@@ -701,7 +701,7 @@ function Root() {
     dayExs.forEach(e => {
       const entryList = logs[logKey(selectedDay?.day, e)] || [];
       const weekEntry = entryList.find(en =>
-        en.programWeek !== undefined ? en.programWeek === currentWeek : en.week === currentWeek
+        en.programWeek === currentWeek
       );
       if (weekEntry?.sets) {
         const vol = weekEntry.sets.reduce((acc, s) => acc + (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0), 0);
@@ -2012,7 +2012,7 @@ function Root() {
     );
     const hasThisWeekLog = thisWeekData.length > 0;
     const maxLoggedWeek = data.length > 0
-      ? Math.max(...data.map(en => en.programWeek !== undefined ? en.programWeek : en.week))
+      ? Math.max(...data.map(en => en.programWeek))
       : 0;
     const canLogThisWeek = currentWeek <= maxLoggedWeek + 1;
     const latest = data.length > 0 ? data[data.length - 1].weight : null;
@@ -2025,7 +2025,7 @@ function Root() {
       );
       return dayExs.length > 0 && dayExs.every(e =>
         (logs[logKey(selectedDay.day, e)] || []).some(en =>
-          en.programWeek !== undefined ? en.programWeek === currentWeek : en.week === currentWeek
+          en.programWeek === currentWeek
         )
       );
     })();
@@ -2042,7 +2042,7 @@ function Root() {
       const count = sr ? parseInt(sr.sets) : 3;
       const allLogs = logs[logKey(selectedDay.day, selectedExercise)] || [];
       const weekEntry = allLogs.find(en =>
-        en.programWeek !== undefined ? en.programWeek === newWeek : en.week === newWeek
+        en.programWeek === newWeek
       );
       const lastEntry = weekEntry || (allLogs.length > 0 ? allLogs[allLogs.length - 1] : null);
       const fallbackReps = lastEntry?.reps || (sr ? sr.reps.split('-')[0] : '');
@@ -2198,50 +2198,6 @@ function Root() {
             </View>
           )}
 
-          {/* Recommended First Set */}
-          {!hasThisWeekLog && canLogThisWeek && data.length > 0 && !sessionSets[0]?.completed && (() => {
-            const lastEntry = data[data.length - 1];
-            const lastSets = lastEntry?.sets || [];
-            const topSet = lastSets.length > 0
-              ? lastSets.reduce((best, s) => (parseFloat(s.weight) || 0) >= (parseFloat(best.weight) || 0) ? s : best, lastSets[0])
-              : { weight: lastEntry?.weight, reps: lastEntry?.reps };
-            if (!topSet?.weight) return null;
-            return (
-              <View style={{ backgroundColor: '#0d1f2d', borderWidth: 1, borderColor: '#4a90e255', borderRadius: 14, padding: 16, marginBottom: 12 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                  <Text style={{ color: '#4a90e2', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 }}>✦  Recommended First Set</Text>
-                </View>
-                <Text style={{ color: COLORS.text, fontSize: 22, fontWeight: '800', marginBottom: 4 }}>
-                  <Text style={{ color: '#fff' }}>{topSet.weight}</Text>
-                  <Text style={{ color: COLORS.muted, fontSize: 14, fontWeight: '400' }}> lbs</Text>
-                  <Text style={{ color: COLORS.muted, fontSize: 18, fontWeight: '400' }}> × </Text>
-                  <Text style={{ color: '#fff' }}>{topSet.reps}</Text>
-                  <Text style={{ color: COLORS.muted, fontSize: 14, fontWeight: '400' }}> reps</Text>
-                </Text>
-                <Text style={{ color: COLORS.muted, fontSize: 13, marginBottom: 14 }}>
-                  You hit this last session — start here.
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  <TouchableOpacity
-                    style={{ flex: 1, backgroundColor: '#1a3a4a', borderWidth: 1, borderColor: '#4a90e244', borderRadius: 10, paddingVertical: 8, alignItems: 'center' }}
-                    onPress={() => {
-                      const s = [...sessionSets];
-                      s[0] = { ...s[0], weight: String(topSet.weight), reps: String(topSet.reps) };
-                      setSessionSets(s);
-                    }}
-                  >
-                    <Text style={{ color: '#4a90e2', fontWeight: '700', fontSize: 14 }}>Use Suggestion</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={{ flex: 1, backgroundColor: '#1c1c3a', borderWidth: 1, borderColor: '#ffffff15', borderRadius: 10, paddingVertical: 8, alignItems: 'center' }}
-                    onPress={() => { setWeightPickerIndex(0); setWeightPickerVisible(true); }}
-                  >
-                    <Text style={{ color: COLORS.text, fontWeight: '600', fontSize: 14 }}>Edit</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            );
-          })()}
 
           {/* Log Sets */}
           {!hasThisWeekLog && !canLogThisWeek && (
@@ -2255,9 +2211,13 @@ function Root() {
           )}
           {!hasThisWeekLog && canLogThisWeek && <View style={{ backgroundColor: '#1c1c3a55', borderWidth: 1, borderColor: '#ffffff0d', borderRadius: 14, padding: 14, marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 16 }}>Log Sets</Text>
-                {data.length > 0 && <Text style={{ color: COLORS.muted, fontSize: 11 }}>(last week's data)</Text>}
+                {(() => {
+                  const lastSet1 = data.length > 0 ? (data[data.length - 1]?.sets?.[0] || { weight: data[data.length - 1]?.weight, reps: data[data.length - 1]?.reps }) : null;
+                  if (!lastSet1?.weight || sessionSets[0]?.completed) return null;
+                  return <Text style={{ color: COLORS.muted, fontSize: 12 }}>⭐ Set 1 Suggestion: <Text style={{ color: COLORS.text, fontWeight: '600' }}>{lastSet1.weight} lbs × {lastSet1.reps} reps</Text></Text>;
+                })()}
               </View>
               <TouchableOpacity
                 onPress={() => {
@@ -2340,7 +2300,7 @@ function Root() {
                 const key = logKey(selectedDay.day, selectedExercise);
                 const existing = logs[key] || [];
                 const allSets = sessionSets.map((s, idx) => s.completed ? { weight: s.weight, reps: s.reps } : (existing[existing.length - 1]?.sets?.[idx] || { weight: '', reps: '' }));
-                const newEntry = { week: existing.length + 1, programWeek: currentWeek, weight: String(maxWeight), reps: bestSet.reps, sets: allSets };
+                const newEntry = { programWeek: currentWeek, weight: String(maxWeight), reps: bestSet.reps, sets: allSets };
                 const updatedLogs = { ...logs, [key]: [...existing, newEntry] };
                 setLogs(updatedLogs);
                 if (user) updateDoc(doc(db, 'users', user.email), { logs: updatedLogs });
@@ -2349,7 +2309,7 @@ function Root() {
                 );
                 const allLogged = dayExs.every(e =>
                   (updatedLogs[logKey(selectedDay.day, e)] || []).some(en =>
-                    en.programWeek !== undefined ? en.programWeek === currentWeek : en.week === currentWeek
+                    en.programWeek === currentWeek
                   )
                 );
                 if (allLogged) {
@@ -2514,7 +2474,7 @@ function Root() {
 
         {/* Weight Picker Modal */}
         {(() => {
-          const ITEM_HEIGHT = 52;
+          const ITEM_HEIGHT = 40;
           const exName = cleanExerciseName(selectedExercise || '');
           const range = EXERCISE_WEIGHT_RANGES[exName] || { min: 5, max: 300 };
           const steps = [];
@@ -2543,13 +2503,10 @@ function Root() {
                 }
               }}
             >
-              <View style={{ flex: 1, backgroundColor: '#000000cc', justifyContent: 'flex-end' }}>
-                <View style={{ height: screenHeight * 0.75, backgroundColor: '#1c1c3a', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#ffffff10' }}>
+              <TouchableOpacity activeOpacity={1} style={{ flex: 1, backgroundColor: '#000000cc', justifyContent: 'flex-end', alignItems: 'flex-start' }} onPress={() => setWeightPickerVisible(false)}>
+                <View style={{ height: screenHeight * 0.55, width: '75%', backgroundColor: '#1c1c3a', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
+                  <View style={{ paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#ffffff10' }}>
                     <Text style={{ color: COLORS.muted, fontSize: 15 }}>Select Weight</Text>
-                    <TouchableOpacity onPress={() => setWeightPickerVisible(false)}>
-                      <Text style={{ color: '#4a90e2', fontSize: 15, fontWeight: '600' }}>Cancel</Text>
-                    </TouchableOpacity>
                   </View>
                   <FlatList
                     ref={weightListRef}
@@ -2570,9 +2527,9 @@ function Root() {
                             setSessionSets(s);
                             setWeightPickerVisible(false);
                           }}
-                          style={{ height: ITEM_HEIGHT, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#ffffff08', backgroundColor: selected ? '#4a90e218' : w % 5 === 0 ? '#ffffff05' : 'transparent' }}
+                          style={{ height: ITEM_HEIGHT, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#ffffff08', backgroundColor: selected ? '#4a90e218' : 'transparent' }}
                         >
-                          <Text style={{ color: selected ? '#4a90e2' : w % 5 === 0 ? '#e0e0ff' : COLORS.muted, fontSize: 18, fontWeight: selected ? '700' : w % 5 === 0 ? '600' : '400' }}>{w % 1 === 0 ? w : w.toFixed(1)} lbs</Text>
+                          <Text style={{ color: selected ? '#4a90e2' : COLORS.text, fontSize: 13, fontWeight: selected ? '700' : '400' }}>{w % 1 === 0 ? w : w.toFixed(1)} lbs</Text>
                           {showPrevBadge && (
                             <View style={{ backgroundColor: '#4a90e222', borderWidth: 1, borderColor: '#4a90e255', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 }}>
                               <Text style={{ color: '#4a90e2', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 }}>prev set</Text>
@@ -2588,7 +2545,7 @@ function Root() {
                     }}
                   />
                 </View>
-              </View>
+              </TouchableOpacity>
             </Modal>
           );
         })()}
