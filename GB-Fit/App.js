@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db } from './firebaseConfig';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import {
@@ -36,6 +36,15 @@ const COLORS = {
 };
 
 function buildPlan(days) { return days; }
+
+const BARBELL_EXERCISES = new Set([
+  'Incline Bench Press', 'Flat Bench Press', 'Romanian Deadlift',
+  'Shrugs', 'Back Squat', 'EZ Bar Seated Curl',
+]);
+function isBarbellExercise(name) {
+  const clean = cleanExerciseName(name || '');
+  return clean.includes('Barbell') || clean.includes('EZ Bar') || BARBELL_EXERCISES.has(clean);
+}
 
 const PLATE_COLORS = { 45: '#c0392b', 35: '#2471a3', 25: '#d4ac0d', 10: '#1e8449', 5: '#717d7e', 2.5: '#aab7b8' };
 const PLATE_H = { 45: 76, 35: 65, 25: 54, 10: 42, 5: 33, 2.5: 24 };
@@ -80,6 +89,50 @@ const WORKOUT_PLANS = {
 const QUESTIONS = [
   { key: 'goal', label: "What's your goal?", type: 'choice', options: ['Building Muscle - Men', 'Building Muscle - Women', 'Get a Nutrition Plan'] },
 ];
+
+const MEDICAL_CONDITIONS = [
+  { category: 'Cardiovascular', conditions: [
+    'High Blood Pressure (Hypertension)', 'Heart Disease / Coronary Artery Disease',
+    'Heart Failure', 'Atrial Fibrillation', 'History of Heart Attack',
+    'Peripheral Artery Disease', 'Deep Vein Thrombosis (DVT)',
+  ]},
+  { category: 'Metabolic', conditions: [
+    'Type 1 Diabetes', 'Type 2 Diabetes', 'Hypothyroidism', 'Hyperthyroidism',
+    'Metabolic Syndrome', 'Polycystic Ovary Syndrome (PCOS)', 'Obesity (BMI > 30)',
+  ]},
+  { category: 'Musculoskeletal', conditions: [
+    'Osteoporosis / Osteopenia', 'Osteoarthritis', 'Rheumatoid Arthritis',
+    'Chronic Lower Back Pain', 'Herniated / Bulging Disc', 'Scoliosis',
+    'Tendinitis', 'Rotator Cuff Injury', 'Knee Injury (ACL / Meniscus)',
+    'Hip Replacement / Injury', 'Plantar Fasciitis', 'Fibromyalgia',
+  ]},
+  { category: 'Respiratory', conditions: [
+    'Asthma', 'Exercise-Induced Asthma / Bronchospasm',
+    'COPD (Chronic Obstructive Pulmonary Disease)', 'Sleep Apnea',
+  ]},
+  { category: 'Neurological', conditions: [
+    'Multiple Sclerosis', "Parkinson's Disease", 'Epilepsy / Seizure Disorder',
+    'Stroke / TIA (History)', 'Neuropathy',
+  ]},
+  { category: 'Mental Health', conditions: [
+    'Depression', 'Anxiety Disorder', 'Eating Disorder', 'PTSD',
+  ]},
+  { category: 'Other', conditions: [
+    'Anemia', 'Chronic Fatigue Syndrome', 'Kidney Disease', 'Liver Disease',
+    'Cancer (Active or in Remission)', 'Autoimmune Condition', 'Pregnancy',
+    'Postpartum (Within 6 Months)', 'Celiac Disease', 'Lupus',
+  ]},
+];
+
+const ALL_CONDITIONS = MEDICAL_CONDITIONS.flatMap(g => g.conditions);
+
+// Conditions that require exercise caution warnings
+const HIGH_CAUTION_CONDITIONS = new Set([
+  'Heart Disease / Coronary Artery Disease', 'Heart Failure', 'History of Heart Attack',
+  'Atrial Fibrillation', 'High Blood Pressure (Hypertension)', 'Type 1 Diabetes',
+  'Type 2 Diabetes', 'Epilepsy / Seizure Disorder', 'Stroke / TIA (History)',
+  'Pregnancy', 'Osteoporosis / Osteopenia', 'COPD (Chronic Obstructive Pulmonary Disease)',
+]);
 
 const GOAL_META = {
   'Building Muscle - Men':   { icon: 'M', iconColor: '#ff6b6b', iconGradient: ['#e63946', '#7b1fa2'], subtitle: 'Track workouts' },
@@ -158,7 +211,7 @@ const EXERCISE_NOTES = {
 };
 
 const EXERCISE_WEIGHT_RANGES = {
-  'Incline Bench Press':              { min: 20,  max: 150 },
+  'Incline Bench Press':              { min: 20,  max: 315 },
   'Flat Bench Press':                 { min: 45,  max: 405 },
   'Weighted Pull Ups':                { min: 0,   max: 135 },
   'Bent Over Barbell Row':            { min: 45,  max: 315 },
@@ -180,7 +233,7 @@ const EXERCISE_WEIGHT_RANGES = {
   'Standing Calf Raise':              { min: 20,  max: 400 },
   'Machine Shoulder Press':           { min: 20,  max: 200 },
   'Neutral Grip Lat Pulldown':        { min: 30,  max: 220 },
-  'Dumbbell Row with Chest Support':  { min: 15,  max: 150 },
+  'Dumbbell Chest Supported Row':     { min: 15,  max: 150 },
   'Cable Seated Row':                 { min: 20,  max: 200 },
   'Reverse Cable Flyes':              { min: 5,   max: 50  },
   'Shrugs':                           { min: 45,  max: 495 },
@@ -638,6 +691,244 @@ function DayCard({ item, currentWeek, logs, completedWorkouts, onPress }) {
   );
 }
 
+// ── Workout Complete celebration modal ────────────────────────
+const CONFETTI_COLORS = ['#4ade80', '#f59e0b', '#60a5fa', '#f472b6', '#a78bfa', '#34d399', '#fbbf24'];
+const CONFETTI_COUNT = 30;
+
+function DayCompleteModal({ visible, selectedDay, logs, currentWeek, onSaveExit }) {
+  const [displayVol, setDisplayVol] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.88)).current;
+  const particles = useRef(
+    Array.from({ length: CONFETTI_COUNT }, (_, i) => ({
+      x: Math.random() * 360 - 20,
+      y: new Animated.Value(-80),
+      rot: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      isRect: Math.random() > 0.5,
+      w: 5 + Math.random() * 6,
+      h: 10 + Math.random() * 9,
+    }))
+  ).current;
+  const barAnims = useRef(Array.from({ length: 4 }, () => new Animated.Value(0))).current;
+
+  const dayExs = (selectedDay?.exercises || []).filter(e =>
+    !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
+  );
+  const dayParts = (selectedDay?.day || '').split('–').map(s => s.trim());
+  const dayOfWeek = dayParts[0] || '';
+  const dayLabel = dayParts[1] || dayParts[0] || '';
+  const estMins = dayExs.length * 8;
+  const muscleVols = {};
+  let totalVol = 0;
+  dayExs.forEach(e => {
+    const entryList = logs[logKeyGlobal(selectedDay?.day, e)] || [];
+    const weekEntry = entryList.find(en => en.programWeek === currentWeek);
+    if (weekEntry?.sets) {
+      const vol = weekEntry.sets.reduce((acc, s) => acc + (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0), 0);
+      totalVol += vol;
+      const muscle = EXERCISE_MUSCLES[cleanExerciseName(e)] || 'Other';
+      muscleVols[muscle] = (muscleVols[muscle] || 0) + vol;
+    }
+  });
+  const maxVol = Math.max(...Object.values(muscleVols), 1);
+  const sortedMuscles = Object.entries(muscleVols).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const headline = dayLabel ? `${dayLabel} Crushed 💪` : 'You Showed Up 🔥';
+
+  useEffect(() => {
+    if (!visible) {
+      fadeAnim.setValue(0);
+      scaleAnim.setValue(0.88);
+      setDisplayVol(0);
+      particles.forEach(p => { p.y.setValue(-80); p.opacity.setValue(0); p.rot.setValue(0); });
+      barAnims.forEach(b => b.setValue(0));
+      return;
+    }
+    // Card appear
+    Animated.parallel([
+      Animated.spring(fadeAnim, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 5 }),
+      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 10, bounciness: 8 }),
+    ]).start();
+    // Volume count-up with ease-out
+    const steps = 50;
+    const duration = 1400;
+    let step = 0;
+    const iv = setInterval(() => {
+      step++;
+      const t = step / steps;
+      setDisplayVol(Math.round(totalVol * (1 - Math.pow(1 - t, 3))));
+      if (step >= steps) clearInterval(iv);
+    }, duration / steps);
+    // Animated muscle bars staggered
+    Animated.stagger(100, sortedMuscles.map(([, vol], i) =>
+      Animated.timing(barAnims[i], { toValue: vol / maxVol, duration: 800, useNativeDriver: false })
+    )).start();
+    // Confetti burst
+    particles.forEach(p => {
+      const delay = Math.random() * 400;
+      p.y.setValue(-80);
+      p.opacity.setValue(1);
+      p.rot.setValue(0);
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.parallel([
+          Animated.timing(p.y, { toValue: 700 + Math.random() * 250, duration: 1800 + Math.random() * 1000, useNativeDriver: true }),
+          Animated.timing(p.rot, { toValue: (Math.random() > 0.5 ? 1 : -1) * (4 + Math.random() * 8), duration: 2200, useNativeDriver: true }),
+          Animated.sequence([
+            Animated.delay(1400),
+            Animated.timing(p.opacity, { toValue: 0, duration: 600, useNativeDriver: true }),
+          ]),
+        ]),
+      ]).start();
+    });
+    return () => clearInterval(iv);
+  }, [visible]);
+
+  return (
+    <Modal visible={visible} transparent animationType="none">
+      <Animated.View style={{ flex: 1, backgroundColor: '#000000ee', justifyContent: 'center', alignItems: 'center', padding: 24, opacity: fadeAnim }}>
+        {/* Confetti */}
+        {particles.map((p, i) => (
+          <Animated.View
+            key={i}
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: p.x,
+              width: p.w,
+              height: p.h,
+              borderRadius: p.isRect ? 2 : p.w / 2,
+              backgroundColor: p.color,
+              opacity: p.opacity,
+              transform: [
+                { translateY: p.y },
+                { rotate: p.rot.interpolate({ inputRange: [-10, 10], outputRange: ['-360deg', '360deg'] }) },
+              ],
+            }}
+          />
+        ))}
+        {/* Card */}
+        <Animated.View style={{
+          backgroundColor: '#12122a',
+          borderRadius: 24,
+          padding: 28,
+          width: '100%',
+          borderWidth: 1,
+          borderColor: '#4ade8040',
+          borderTopColor: '#4ade8080',
+          transform: [{ scale: scaleAnim }],
+          shadowColor: '#4ade80',
+          shadowOpacity: 0.2,
+          shadowRadius: 24,
+          elevation: 12,
+        }}>
+          <Text style={{ color: '#4ade80', fontSize: 30, fontWeight: '900', textAlign: 'center', letterSpacing: -0.5 }}>{headline}</Text>
+          <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: '700', textAlign: 'center', marginTop: 8 }}>
+            {dayLabel}{dayOfWeek ? <Text style={{ color: COLORS.muted, fontWeight: '400' }}> — {dayOfWeek}</Text> : null}
+          </Text>
+          <Text style={{ color: COLORS.muted, fontSize: 13, textAlign: 'center', marginTop: 4 }}>
+            ~{estMins} min  •  {dayExs.length} exercises  •  Week {currentWeek}
+          </Text>
+          <View style={{ height: 1, backgroundColor: '#ffffff12', marginVertical: 20 }} />
+          <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>VOLUME LIFTED</Text>
+          <Text style={{ color: COLORS.text, fontSize: 34, fontWeight: '900', marginBottom: 20, letterSpacing: -1 }}>
+            {displayVol.toLocaleString()} <Text style={{ color: COLORS.muted, fontSize: 14, fontWeight: '400' }}>lbs</Text>
+          </Text>
+          {sortedMuscles.length > 0 && (
+            <>
+              <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MUSCLES WORKED</Text>
+              {sortedMuscles.map(([muscle, vol], i) => (
+                <View key={muscle} style={{ marginBottom: 10 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600' }}>{muscle}</Text>
+                    <Text style={{ color: COLORS.muted, fontSize: 12 }}>{vol.toLocaleString()} lbs</Text>
+                  </View>
+                  <View style={{ height: 6, backgroundColor: '#1e1e3a', borderRadius: 3, overflow: 'hidden' }}>
+                    <Animated.View style={{
+                      height: 6,
+                      backgroundColor: '#4ade80',
+                      borderRadius: 3,
+                      width: barAnims[i].interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
+                      shadowColor: '#4ade80',
+                      shadowOpacity: 0.6,
+                      shadowRadius: 4,
+                    }} />
+                  </View>
+                </View>
+              ))}
+            </>
+          )}
+          <TouchableOpacity
+            onPress={onSaveExit}
+            style={{ marginTop: 24, backgroundColor: '#4ade80', borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#000', fontWeight: '800', fontSize: 16 }}>Save & Exit</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
+  );
+}
+
+const BF_CATEGORIES = [
+  { min: 0,  label: 'Essential Fat',  color: '#60a5fa' },
+  { min: 6,  label: 'Athletic',       color: '#4ade80' },
+  { min: 14, label: 'Fit',            color: '#34d399' },
+  { min: 21, label: 'Average',        color: '#f59e0b' },
+  { min: 26, label: 'Above Average',  color: '#f97316' },
+  { min: 32, label: 'High',           color: '#ef4444' },
+];
+
+
+function SliderInput({ min, max, step = 1, value, onValueChange, unit = '', categories }) {
+  const [trackW, setTrackW] = useState(0);
+  const trackRef = useRef(null);
+  const trackPageX = useRef(0);
+  const THUMB = 26;
+  const pct = trackW > 0 ? (value - min) / (max - min) : 0;
+  const thumbLeft = pct * (trackW - THUMB);
+  const category = categories?.find((c, i) => value >= c.min && (categories[i + 1] ? value < categories[i + 1].min : true));
+  const color = category?.color || COLORS.accent;
+  const handleMove = (e) => {
+    if (!trackW) return;
+    const x = Math.max(0, Math.min(e.nativeEvent.pageX - trackPageX.current, trackW));
+    const raw = min + (x / trackW) * (max - min);
+    onValueChange(Math.max(min, Math.min(max, Math.round(raw / step) * step)));
+  };
+  const remeasure = () => {
+    if (trackRef.current) trackRef.current.measure((_fx, _fy, _w, _h, px) => { trackPageX.current = px; });
+  };
+  return (
+    <View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        {category && <Text style={{ color, fontSize: 13, fontWeight: '700' }}>{category.label}</Text>}
+        <Text style={{ color: COLORS.text, fontSize: 28, fontWeight: '900', marginLeft: 'auto' }}>{value}<Text style={{ color: COLORS.muted, fontSize: 14, fontWeight: '400' }}>{unit}</Text></Text>
+      </View>
+      <View
+        ref={trackRef}
+        onLayout={e => { setTrackW(e.nativeEvent.layout.width); remeasure(); }}
+        onStartShouldSetResponder={() => true}
+        onResponderGrant={e => { remeasure(); handleMove(e); }}
+        onResponderMove={handleMove}
+        style={{ height: 48, justifyContent: 'center', marginBottom: 6 }}
+      >
+        <View style={{ height: 8, backgroundColor: '#1e1e3a', borderRadius: 4 }}>
+          <View style={{ height: 8, backgroundColor: color, width: `${pct * 100}%`, borderRadius: 4 }} />
+        </View>
+        {trackW > 0 && (
+          <View style={{ position: 'absolute', left: thumbLeft, top: (48 - THUMB) / 2, width: THUMB, height: THUMB, borderRadius: THUMB / 2, backgroundColor: color, shadowColor: color, shadowOpacity: 0.6, shadowRadius: 8, elevation: 6 }} />
+        )}
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={{ color: COLORS.muted, fontSize: 11 }}>{min}{unit}</Text>
+        <Text style={{ color: COLORS.muted, fontSize: 11 }}>{max}{unit}</Text>
+      </View>
+    </View>
+  );
+}
+
 function Root() {
   const { height: screenHeight } = useWindowDimensions();
   const [textVal, setTextVal] = useState('');
@@ -666,8 +957,17 @@ function Root() {
   const weightListRef = useRef(null);
   const [repsPickerVisible, setRepsPickerVisible] = useState(false);
   const [repsPickerIndex, setRepsPickerIndex] = useState(null);
-  const [authForm, setAuthForm] = useState({ name: '', email: 'gbutton11@hotmail.com', password: 'Unicycle12!', gender: '' });
+  const [authForm, setAuthForm] = useState({ name: 'Test Test', email: 'test@test.com', password: 'Unicycle12!' });
   const [authError, setAuthError] = useState('');
+  const [profileStep, setProfileStep] = useState(1);
+  const [profileForm, setProfileForm] = useState({
+    gender: '', age: '', weightLbs: '', heightFt: '', heightIn: '',
+    bodyFatPct: '', chest: '', waist: '', hips: '', arms: '', thighs: '',
+    primaryGoal: '', fitnessLevel: '', sleepQuality: '', dailyCalories: '',
+    conditions: [],
+  });
+  const [conditionSearch, setConditionSearch] = useState('');
+  const [hasConditions, setHasConditions] = useState(null); // null | 'yes' | 'no'
   const [showPassword, setShowPassword] = useState(false);
   const [exerciseDbImages, setExerciseDbImages] = useState({});
   const [menuVisible, setMenuVisible] = useState(false);
@@ -675,6 +975,7 @@ function Root() {
   const sheetBackdrop = useRef(new Animated.Value(0)).current;
   const [barPlates, setBarPlates] = useState([]);
   const keepPlatesRef = useRef(false);
+  const savedDismissRef = useRef({ index: null });
   const [workoutChip, setWorkoutChip] = useState(false);
   const chipFade = useRef(new Animated.Value(0)).current;
   const chipScale = useRef(new Animated.Value(0.7)).current;
@@ -773,8 +1074,14 @@ function Root() {
 
 
   useEffect(() => {
-    if (!weightPickerVisible) { setBarPlates([]); return; }
+    if (!weightPickerVisible) return;
     if (keepPlatesRef.current) { keepPlatesRef.current = false; return; }
+    if (savedDismissRef.current.index === weightPickerIndex) {
+      savedDismissRef.current = { index: null };
+      return; // same set reopened after backdrop dismiss — keep plates & tempWeightVal
+    }
+    savedDismissRef.current = { index: null };
+    setTempWeightVal(null);
     const w = weightPickerIndex !== null ? parseFloat(sessionSets[weightPickerIndex]?.weight) || 0 : 0;
     setBarPlates(w >= 45 ? weightToPlates(w) : []);
   }, [weightPickerVisible]);
@@ -832,9 +1139,18 @@ function Root() {
     });
   }, []);
 
+
+  async function deleteTestUsers() {
+    const snap = await getDocs(collection(db, 'users'));
+    const toDelete = snap.docs.filter(d => (d.data().name || '').toLowerCase().includes('test'));
+    if (toDelete.length === 0) { Alert.alert('No test users found'); return; }
+    await Promise.all(toDelete.map(d => deleteDoc(doc(db, 'users', d.id))));
+    Alert.alert('Deleted', `Removed ${toDelete.length} test user${toDelete.length > 1 ? 's' : ''}`);
+  }
+
   function handleRegister() {
-    const { name, email, password, gender } = authForm;
-    if (!name || !email || !password || !gender) {
+    const { name, email, password } = authForm;
+    if (!name || !email || !password) {
       setAuthError('Please fill in all fields.');
       return;
     }
@@ -852,14 +1168,25 @@ function Root() {
         setAuthError('An account with this email already exists.');
         return;
       }
-      const newUser = { name, email, password, gender };
+      const newUser = { name, email, password };
       setDoc(userRef, { ...newUser, restTimerEnabled: true, logs: {}, completedWorkouts: {} });
       AsyncStorage.setItem('user', JSON.stringify(newUser));
       setUser(newUser);
+      setLogs({});
+      setCompletedWorkouts({});
+      setPlan(null);
+      setSelectedDay(null);
+      setSelectedExercise(null);
+      setSessionSets([]);
+      setCurrentWeek(1);
       setRestTimerEnabled(true);
       setAnswers({ name });
       setAuthError('');
-      setScreen('quiz');
+      setProfileStep(1);
+      setProfileForm({ gender: '', age: '', weightLbs: '', heightFt: '', heightIn: '', bodyFatPct: '', chest: '', waist: '', hips: '', arms: '', thighs: '', primaryGoal: '', fitnessLevel: '', sleepQuality: '', dailyCalories: '', conditions: [] });
+      setConditionSearch('');
+      setHasConditions(null);
+      setScreen('profile-setup');
     });
   }
 
@@ -876,6 +1203,11 @@ function Root() {
       const userInfo = { name: found.name, email: found.email, password: found.password, gender: found.gender };
       AsyncStorage.setItem('user', JSON.stringify(userInfo));
       setUser(userInfo);
+      setPlan(null);
+      setSelectedDay(null);
+      setSelectedExercise(null);
+      setSessionSets([]);
+      setCurrentWeek(1);
       setAnswers({ name: found.name });
       setAuthError('');
       const foundLogs = found.logs || {};
@@ -903,74 +1235,24 @@ function Root() {
     setAuthError('');
     setPlan(null);
     setAnswers({});
+    setLogs({});
+    setCompletedWorkouts({});
+    setSelectedDay(null);
+    setSelectedExercise(null);
+    setSessionSets([]);
+    setCurrentWeek(1);
     setScreen('login');
   }
 
   function renderDayCompleteModal() {
-    const dayExs = (selectedDay?.exercises || []).filter(e =>
-      !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
-    );
-    const dayParts = (selectedDay?.day || '').split('–').map(s => s.trim());
-    const dayOfWeek = dayParts[0] || '';
-    const dayLabel = dayParts[1] || dayParts[0] || '';
-    const estMins = dayExs.length * 8;
-    const muscleVols = {};
-    let totalVol = 0;
-    dayExs.forEach(e => {
-      const entryList = logs[logKey(selectedDay?.day, e)] || [];
-      const weekEntry = entryList.find(en =>
-        en.programWeek === currentWeek
-      );
-      if (weekEntry?.sets) {
-        const vol = weekEntry.sets.reduce((acc, s) => acc + (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0), 0);
-        totalVol += vol;
-        const muscle = EXERCISE_MUSCLES[cleanExerciseName(e)] || 'Other';
-        muscleVols[muscle] = (muscleVols[muscle] || 0) + vol;
-      }
-    });
-    const maxVol = Math.max(...Object.values(muscleVols), 1);
-    const sortedMuscles = Object.entries(muscleVols).sort((a, b) => b[1] - a[1]).slice(0, 4);
     return (
-      <Modal visible={showDayComplete} transparent animationType="fade">
-        <View style={{ flex: 1, backgroundColor: '#000000ee', justifyContent: 'center', alignItems: 'center', padding: 28 }}>
-          <View style={{ backgroundColor: '#12122a', borderRadius: 24, padding: 28, width: '100%', borderWidth: 1, borderColor: '#4ade8030' }}>
-            <Text style={{ color: '#4ade80', fontSize: 28, fontWeight: '900', textAlign: 'center' }}>Workout Complete 🎉</Text>
-            <Text style={{ color: COLORS.text, fontSize: 17, fontWeight: '700', textAlign: 'center', marginTop: 10 }}>
-              {dayLabel}{dayOfWeek ? <Text style={{ color: COLORS.muted, fontWeight: '400' }}> — {dayOfWeek}</Text> : null}
-            </Text>
-            <Text style={{ color: COLORS.muted, fontSize: 13, textAlign: 'center', marginTop: 4 }}>
-              ~{estMins} min  •  {dayExs.length} exercises  •  Week {currentWeek}
-            </Text>
-            <View style={{ height: 1, backgroundColor: '#ffffff12', marginVertical: 20 }} />
-            <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>VOLUME LIFTED</Text>
-            <Text style={{ color: COLORS.text, fontSize: 26, fontWeight: '800', marginBottom: 20 }}>
-              {totalVol > 0 ? totalVol.toLocaleString() : '—'} <Text style={{ color: COLORS.muted, fontSize: 14, fontWeight: '400' }}>lbs</Text>
-            </Text>
-            {sortedMuscles.length > 0 && (
-              <>
-                <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MUSCLES WORKED</Text>
-                {sortedMuscles.map(([muscle, vol]) => (
-                  <View key={muscle} style={{ marginBottom: 10 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600' }}>{muscle}</Text>
-                      <Text style={{ color: COLORS.muted, fontSize: 12 }}>{vol.toLocaleString()} lbs</Text>
-                    </View>
-                    <View style={{ height: 6, backgroundColor: '#1e1e3a', borderRadius: 3 }}>
-                      <View style={{ height: 6, backgroundColor: '#4ade80', borderRadius: 3, width: `${Math.round((vol / maxVol) * 100)}%` }} />
-                    </View>
-                  </View>
-                ))}
-              </>
-            )}
-            <TouchableOpacity
-              onPress={() => { setShowDayComplete(false); setScreen('plan'); }}
-              style={{ marginTop: 24, backgroundColor: '#4ade80', borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}
-            >
-              <Text style={{ color: '#000', fontWeight: '800', fontSize: 16 }}>Save & Exit</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <DayCompleteModal
+        visible={showDayComplete}
+        selectedDay={selectedDay}
+        logs={logs}
+        currentWeek={currentWeek}
+        onSaveExit={() => { setShowDayComplete(false); setScreen('plan'); }}
+      />
     );
   }
 
@@ -993,7 +1275,8 @@ function Root() {
     if (key === 'goal' && (value === 'Building Muscle - Men' || value === 'Building Muscle - Women')) {
       setPlan(WORKOUT_PLANS[value]);
       if (user) updateDoc(doc(db, 'users', user.email), { goal: value });
-      setScreen('plan');
+      const isFirstTime = Object.keys(logs).length === 0;
+      setScreen(isFirstTime ? 'plan-preview' : 'plan');
       return;
     }
     if (step < QUESTIONS.length - 1) {
@@ -1170,24 +1453,6 @@ function Root() {
             </AnimatedPress>
           </View>
 
-          {/* Gender */}
-          <Text style={{ color: COLORS.muted, fontSize: 14, fontWeight: '600', marginBottom: 10, letterSpacing: 0.5 }}>GENDER</Text>
-          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
-            {['Male', 'Female'].map(g => (
-              <TouchableOpacity
-                key={g}
-                style={{
-                  flex: 1, borderRadius: 14, paddingVertical: 14, alignItems: 'center',
-                  backgroundColor: authForm.gender === g ? COLORS.accent : COLORS.surface,
-                  borderWidth: 1, borderColor: authForm.gender === g ? COLORS.accent : '#2a2a4a',
-                }}
-                onPress={() => setAuthForm(f => ({ ...f, gender: g }))}
-              >
-                <Text style={{ color: authForm.gender === g ? COLORS.text : COLORS.muted, fontWeight: '700', fontSize: 15 }}>{g}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
           {authError ? <Text style={[styles.authError, { marginBottom: 12 }]}>{authError}</Text> : null}
 
           {/* Create Account button */}
@@ -1207,6 +1472,11 @@ function Root() {
             <Text style={{ color: COLORS.muted, fontSize: 14 }}>
               Already have an account?{'  '}<Text style={{ color: COLORS.accent, fontWeight: '600' }}>Log in</Text>
             </Text>
+          </TouchableOpacity>
+
+          {/* Dev tool */}
+          <TouchableOpacity onPress={deleteTestUsers} style={{ alignItems: 'center', marginTop: 32 }}>
+            <Text style={{ color: '#3a3a5a', fontSize: 11 }}>🗑 Delete test users</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -1487,6 +1757,398 @@ function Root() {
     );
   }
 
+  // ── Profile Setup Screen ─────────────────────────────────
+  if (screen === 'profile-setup') {
+    const pf = profileForm;
+    const setPF = (key, val) => setProfileForm(f => ({ ...f, [key]: val }));
+    const toggleCondition = (c) => setProfileForm(f => ({
+      ...f, conditions: f.conditions.includes(c) ? f.conditions.filter(x => x !== c) : [...f.conditions, c],
+    }));
+    const heightIn = pf.heightFt ? parseInt(pf.heightFt) * 12 + (parseInt(pf.heightIn) || 0) : 0;
+    const bmi = (heightIn > 0 && pf.weightLbs) ? ((parseFloat(pf.weightLbs) / (heightIn * heightIn)) * 703).toFixed(1) : null;
+    const filteredConditions = conditionSearch.trim()
+      ? ALL_CONDITIONS.filter(c => c.toLowerCase().includes(conditionSearch.toLowerCase()))
+      : null;
+    const TOTAL_STEPS = 4;
+    const STEP_HEADLINES = [
+      { eyebrow: "Let's build your plan", title: 'Tell us about you' },
+      { eyebrow: 'Almost there', title: 'How does your body feel?' },
+      { eyebrow: 'One more thing', title: 'Your lifestyle matters' },
+      { eyebrow: 'Last step', title: 'Anything we should know?' },
+    ];
+
+    function saveProfileAndContinue() {
+      const profile = { ...pf, bmi: bmi ? parseFloat(bmi) : null };
+      if (user) updateDoc(doc(db, 'users', user.email), { profile, gender: pf.gender });
+      AsyncStorage.getItem('user').then(val => {
+        if (val) {
+          const u = { ...JSON.parse(val), gender: pf.gender };
+          AsyncStorage.setItem('user', JSON.stringify(u));
+          setUser(u);
+        }
+      });
+      setAnswers(a => ({ ...a, goal: pf.gender === 'Female' ? undefined : undefined }));
+      setScreen('quiz');
+    }
+
+    const inputStyle = { backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, color: COLORS.text, fontSize: 15, borderWidth: 1, borderColor: '#ffffff10', marginBottom: 12 };
+    const labelStyle = { color: COLORS.muted, fontSize: 12, fontWeight: '700', letterSpacing: 0.8, marginBottom: 6, marginTop: 4 };
+    const chipActive = { backgroundColor: COLORS.accent, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.accent };
+    const chipInactive = { backgroundColor: COLORS.surface, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#ffffff10' };
+
+    return (
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        {/* Header */}
+        <View style={{ paddingHorizontal: 24, paddingTop: 60, paddingBottom: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            {profileStep > 1 && (
+              <TouchableOpacity onPress={() => setProfileStep(s => s - 1)}>
+                <Text style={{ color: COLORS.muted, fontSize: 22 }}>‹</Text>
+              </TouchableOpacity>
+            )}
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '600', letterSpacing: 0.5 }}>{STEP_HEADLINES[profileStep - 1].eyebrow}</Text>
+              <Text style={{ color: COLORS.text, fontSize: 24, fontWeight: '900', marginTop: 2 }}>{STEP_HEADLINES[profileStep - 1].title}</Text>
+            </View>
+          </View>
+          {/* Progress bar */}
+          <View style={{ height: 4, backgroundColor: '#1e1e3a', borderRadius: 2, marginTop: 8 }}>
+            <View style={{ height: 4, backgroundColor: COLORS.accent, borderRadius: 2, width: `${(profileStep / TOTAL_STEPS) * 100}%` }} />
+          </View>
+        </View>
+
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }} keyboardShouldPersistTaps="always" showsVerticalScrollIndicator={false}>
+
+          {/* ── Step 1: Personal Info ── */}
+          {profileStep === 1 && (
+            <>
+              <Text style={labelStyle}>GENDER</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
+                {['Male', 'Female'].map(g => (
+                  <TouchableOpacity key={g} style={[pf.gender === g ? chipActive : chipInactive, { flex: 1, alignItems: 'center' }]} onPress={() => setPF('gender', g)}>
+                    <Text style={{ color: pf.gender === g ? '#000' : COLORS.muted, fontWeight: '700' }}>{g}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={labelStyle}>AGE</Text>
+              <TextInput
+                style={inputStyle}
+                placeholder="e.g. 28"
+                placeholderTextColor={COLORS.muted}
+                keyboardType="numeric"
+                value={pf.age}
+                onChangeText={v => setPF('age', v.replace(/[^0-9]/g, ''))}
+              />
+
+              <Text style={labelStyle}>WEIGHT (LBS)</Text>
+              <TextInput
+                style={inputStyle}
+                placeholder="e.g. 185"
+                placeholderTextColor={COLORS.muted}
+                keyboardType="numeric"
+                value={pf.weightLbs}
+                onChangeText={v => setPF('weightLbs', v.replace(/[^0-9]/g, ''))}
+              />
+
+              <Text style={labelStyle}>HEIGHT</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
+                <TextInput
+                  style={[inputStyle, { flex: 1, marginBottom: 0 }]}
+                  placeholder="ft"
+                  placeholderTextColor={COLORS.muted}
+                  keyboardType="numeric"
+                  maxLength={1}
+                  value={pf.heightFt}
+                  onChangeText={v => setPF('heightFt', v.replace(/[^0-9]/g, ''))}
+                />
+                <TextInput
+                  style={[inputStyle, { flex: 1, marginBottom: 0 }]}
+                  placeholder="in"
+                  placeholderTextColor={COLORS.muted}
+                  keyboardType="numeric"
+                  maxLength={2}
+                  value={pf.heightIn}
+                  onChangeText={v => setPF('heightIn', v.replace(/[^0-9]/g, ''))}
+                />
+              </View>
+
+              {bmi && (
+                <View style={{ backgroundColor: '#1e1e3a', borderRadius: 12, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                  <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '600' }}>Calculated BMI</Text>
+                  <Text style={{ color: COLORS.text, fontSize: 22, fontWeight: '900' }}>{bmi}</Text>
+                </View>
+              )}
+            </>
+          )}
+
+          {/* ── Step 2: Body Composition ── */}
+          {profileStep === 2 && (() => {
+            function estimateBodyFat() {
+              const heightInches = pf.heightFt ? parseInt(pf.heightFt) * 12 + (parseInt(pf.heightIn) || 0) : 0;
+              const bmiVal = heightInches > 0 && pf.weightLbs
+                ? (parseFloat(pf.weightLbs) / (heightInches * heightInches)) * 703
+                : null;
+              const age = pf.age ? parseInt(pf.age) : null;
+              if (!bmiVal || !age) return null;
+              const isMale = pf.gender !== 'Female';
+              let bf = (1.20 * bmiVal) + (0.23 * age) - (isMale ? 16.2 : 5.4);
+              if (pf.fitnessLevel === 'Advanced') bf -= 2;
+              if (pf.fitnessLevel === 'Beginner') bf += 2;
+              return Math.max(2, Math.min(50, Math.round(bf)));
+            }
+            const estimate = estimateBodyFat();
+            const canEstimate = estimate !== null;
+
+            return (
+              <>
+                <Text style={labelStyle}>BODY FAT %</Text>
+                <View style={{ backgroundColor: COLORS.surface, borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                  <SliderInput
+                    min={2} max={50} step={1}
+                    value={parseInt(pf.bodyFatPct) || 18}
+                    onValueChange={v => setPF('bodyFatPct', String(v))}
+                    unit="%"
+                    categories={BF_CATEGORIES}
+                  />
+                </View>
+
+                <View style={{ backgroundColor: '#1a1a3a', borderRadius: 12, padding: 14, marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600', marginBottom: 2 }}>Don't know your body fat?</Text>
+                    <Text style={{ color: COLORS.muted, fontSize: 12, lineHeight: 17 }}>
+                      {canEstimate ? `We'll estimate using your height, weight & age.` : 'Enter your height, weight & age on the previous step first.'}
+                    </Text>
+                  </View>
+                  {canEstimate && (
+                    <TouchableOpacity
+                      style={{ backgroundColor: COLORS.accent, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 }}
+                      onPress={() => setPF('bodyFatPct', String(estimate))}
+                    >
+                      <Text style={{ color: '#000', fontWeight: '900', fontSize: 13 }}>Estimate</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+              <Text style={labelStyle}>MEASUREMENTS (INCHES) — OPTIONAL</Text>
+              {(() => {
+                const h = pf.heightFt ? parseInt(pf.heightFt) * 12 + (parseInt(pf.heightIn) || 0) : 0;
+                const w = parseFloat(pf.weightLbs) || 0;
+                const isFemale = pf.gender === 'Female';
+                // Devine formula for typical weight (lbs)
+                const typicalW = isFemale ? (100 + 5 * (h - 60)) : (106 + 6 * (h - 60));
+                const wAdj = w && typicalW > 0 ? (w - typicalW) / typicalW : 0;
+                const est = (base) => h && w ? Math.round(base * (1 + Math.max(-0.3, Math.min(0.3, wAdj * 0.4)) )) : null;
+                const estimates = isFemale
+                  ? { chest: est(h * 0.535), waist: est(h * 0.415), hips: est(h * 0.575), arms: est(h * 0.175), thighs: est(h * 0.335) }
+                  : { chest: est(h * 0.570), waist: est(h * 0.455), hips: est(h * 0.535), arms: est(h * 0.195), thighs: est(h * 0.315) };
+                return (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4 }}>
+                    {[['Chest', 'chest'], ['Waist', 'waist'], ['Hips', 'hips'], ['Arms', 'arms'], ['Thighs', 'thighs']].map(([label, key]) => (
+                      <View key={key} style={{ width: '47%', backgroundColor: COLORS.surface, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#ffffff08' }}>
+                        <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 0.6, marginBottom: 4 }}>{label.toUpperCase()}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <TextInput
+                            style={{ flex: 1, color: COLORS.text, fontSize: 20, fontWeight: '700' }}
+                            value={pf[key]}
+                            placeholder="—"
+                            placeholderTextColor={COLORS.muted}
+                            keyboardType="decimal-pad"
+                            onChangeText={v => setPF(key, v.replace(/[^0-9.]/g, ''))}
+                          />
+                          {!pf[key] && estimates[key] && (
+                            <Text style={{ color: COLORS.muted, fontSize: 12 }}>~{estimates[key]}"</Text>
+                          )}
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                );
+              })()}
+            </>
+            );
+          })()}
+
+          {/* ── Step 3: Lifestyle ── */}
+          {profileStep === 3 && (
+            <>
+              <Text style={labelStyle}>PRIMARY GOAL</Text>
+              <View style={{ gap: 10, marginBottom: 20 }}>
+                {[
+                  { key: 'Build Muscle',  icon: '💪', desc: 'Gain size and strength' },
+                  { key: 'Lose Fat',      icon: '🔥', desc: 'Burn fat, get leaner' },
+                  { key: 'Recomp',        icon: '⚖️',  desc: 'Build muscle & lose fat simultaneously' },
+                  { key: 'Get Stronger',  icon: '🏋️', desc: 'Increase your lifts and raw power' },
+                ].map(({ key, icon, desc }) => {
+                  const active = pf.primaryGoal === key;
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      onPress={() => setPF('primaryGoal', key)}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: active ? COLORS.accent + '18' : COLORS.surface, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: active ? COLORS.accent : '#ffffff10' }}
+                    >
+                      <Text style={{ fontSize: 24 }}>{icon}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: active ? COLORS.accent : COLORS.text, fontWeight: '800', fontSize: 15 }}>{key}</Text>
+                        <Text style={{ color: COLORS.muted, fontSize: 12, marginTop: 2 }}>{desc}</Text>
+                      </View>
+                      {active && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.accent }} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <Text style={labelStyle}>CURRENT FITNESS LEVEL</Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                {['Beginner', 'Intermediate', 'Advanced'].map(l => (
+                  <TouchableOpacity key={l} style={pf.fitnessLevel === l ? chipActive : chipInactive} onPress={() => setPF('fitnessLevel', l)}>
+                    <Text style={{ color: pf.fitnessLevel === l ? '#000' : COLORS.muted, fontWeight: '700', fontSize: 13 }}>{l}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={labelStyle}>SLEEP QUALITY</Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                {['Poor', 'Fair', 'Good', 'Excellent'].map(s => (
+                  <TouchableOpacity key={s} style={pf.sleepQuality === s ? chipActive : chipInactive} onPress={() => setPF('sleepQuality', s)}>
+                    <Text style={{ color: pf.sleepQuality === s ? '#000' : COLORS.muted, fontWeight: '700', fontSize: 13 }}>{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={labelStyle}>DAILY CALORIE INTAKE (OPTIONAL)</Text>
+              <TextInput style={inputStyle} placeholder="e.g. 2500" placeholderTextColor={COLORS.muted} keyboardType="numeric" value={pf.dailyCalories} onChangeText={v => setPF('dailyCalories', v)} />
+            </>
+          )}
+
+          {/* ── Step 4: Medical Conditions ── */}
+          {profileStep === 4 && (
+            <>
+              {/* YES / NO gate */}
+              {hasConditions === null && (
+                <>
+                  <Text style={{ color: COLORS.muted, fontSize: 13, lineHeight: 20, marginBottom: 24 }}>
+                    This helps us flag exercises or intensities that may need to be modified for you.
+                  </Text>
+                  <View style={{ gap: 12 }}>
+                    {[
+                      { val: 'yes', label: 'Yes, I have some', sub: 'Injuries, conditions, or limitations', icon: '🩺' },
+                      { val: 'no',  label: 'Nope, all good',   sub: 'No known injuries or conditions',      icon: '✅' },
+                    ].map(({ val, label, sub, icon }) => (
+                      <TouchableOpacity
+                        key={val}
+                        onPress={() => {
+                          setHasConditions(val);
+                          if (val === 'no') setProfileForm(f => ({ ...f, conditions: [] }));
+                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: COLORS.surface, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#ffffff10' }}
+                      >
+                        <Text style={{ fontSize: 26 }}>{icon}</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: COLORS.text, fontWeight: '800', fontSize: 15 }}>{label}</Text>
+                          <Text style={{ color: COLORS.muted, fontSize: 12, marginTop: 2 }}>{sub}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {/* No conditions selected */}
+              {hasConditions === 'no' && (
+                <View style={{ alignItems: 'center', paddingVertical: 32, gap: 12 }}>
+                  <Text style={{ fontSize: 48 }}>🎉</Text>
+                  <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '900' }}>You're good to go!</Text>
+                  <Text style={{ color: COLORS.muted, fontSize: 13, textAlign: 'center', lineHeight: 19 }}>No conditions noted. We'll build your plan around full intensity.</Text>
+                  <TouchableOpacity onPress={() => setHasConditions(null)} style={{ marginTop: 8 }}>
+                    <Text style={{ color: COLORS.muted, fontSize: 13, textDecorationLine: 'underline' }}>Actually, I do have something</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Full conditions list */}
+              {hasConditions === 'yes' && (
+                <>
+                  <TouchableOpacity onPress={() => setHasConditions(null)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                    <Text style={{ color: COLORS.muted, fontSize: 13 }}>‹ Go back</Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    style={[inputStyle, { marginBottom: 16 }]}
+                    placeholder="Search conditions..."
+                    placeholderTextColor={COLORS.muted}
+                    value={conditionSearch}
+                    onChangeText={setConditionSearch}
+                  />
+                  {pf.conditions.length > 0 && (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                      {pf.conditions.map(c => (
+                        <TouchableOpacity key={c} onPress={() => toggleCondition(c)} style={{ backgroundColor: '#4ade8022', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: '#4ade8060', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Text style={{ color: '#4ade80', fontSize: 12, fontWeight: '600' }}>{c}</Text>
+                          <Text style={{ color: '#4ade80', fontSize: 12 }}>✕</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                  {(filteredConditions ?? MEDICAL_CONDITIONS.flatMap(g => g.conditions)).length > 0 && (
+                    filteredConditions ? (
+                      filteredConditions.map(c => (
+                        <TouchableOpacity key={c} onPress={() => toggleCondition(c)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 14, backgroundColor: pf.conditions.includes(c) ? '#4ade8012' : COLORS.surface, borderRadius: 10, marginBottom: 6, borderWidth: 1, borderColor: pf.conditions.includes(c) ? '#4ade8040' : '#ffffff08' }}>
+                          <View style={{ width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: pf.conditions.includes(c) ? '#4ade80' : '#4a4a72', backgroundColor: pf.conditions.includes(c) ? '#4ade80' : 'transparent', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                            {pf.conditions.includes(c) && <Text style={{ color: '#000', fontSize: 11, fontWeight: '900', lineHeight: 13 }}>✓</Text>}
+                          </View>
+                          <Text style={{ color: pf.conditions.includes(c) ? COLORS.text : COLORS.muted, fontSize: 14, flex: 1 }}>{c}</Text>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      MEDICAL_CONDITIONS.map(group => (
+                        <View key={group.category} style={{ marginBottom: 18 }}>
+                          <Text style={{ color: COLORS.accent, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 8 }}>{group.category.toUpperCase()}</Text>
+                          {group.conditions.map(c => (
+                            <TouchableOpacity key={c} onPress={() => toggleCondition(c)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 14, backgroundColor: pf.conditions.includes(c) ? '#4ade8012' : COLORS.surface, borderRadius: 10, marginBottom: 6, borderWidth: 1, borderColor: pf.conditions.includes(c) ? '#4ade8040' : '#ffffff08' }}>
+                              <View style={{ width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: pf.conditions.includes(c) ? '#4ade80' : '#4a4a72', backgroundColor: pf.conditions.includes(c) ? '#4ade80' : 'transparent', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                                {pf.conditions.includes(c) && <Text style={{ color: '#000', fontSize: 11, fontWeight: '900', lineHeight: 13 }}>✓</Text>}
+                              </View>
+                              <Text style={{ color: pf.conditions.includes(c) ? COLORS.text : COLORS.muted, fontSize: 14, flex: 1 }}>{c}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      ))
+                    )
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </ScrollView>
+
+        {/* Bottom nav */}
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, backgroundColor: COLORS.bg, borderTopWidth: 1, borderTopColor: '#ffffff08' }}>
+          {profileStep < TOTAL_STEPS ? (
+            <AnimatedPress
+              style={{ backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}
+              onPress={() => setProfileStep(s => s + 1)}
+              scaleDown={0.96}
+            >
+              <Text style={{ color: '#000', fontWeight: '900', fontSize: 16 }}>Continue</Text>
+            </AnimatedPress>
+          ) : (
+            <AnimatedPress
+              style={{ backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}
+              onPress={saveProfileAndContinue}
+              scaleDown={0.96}
+            >
+              <Text style={{ color: '#000', fontWeight: '900', fontSize: 16 }}>Complete Setup</Text>
+            </AnimatedPress>
+          )}
+          {profileStep === 4 && (
+            <TouchableOpacity onPress={saveProfileAndContinue} style={{ alignItems: 'center', marginTop: 12 }}>
+              <Text style={{ color: COLORS.muted, fontSize: 13 }}>Skip for now</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+      </KeyboardAvoidingView>
+    );
+  }
+
   // ── Quiz Screen ──────────────────────────────────────────
   if (screen === 'quiz') {
     return (
@@ -1530,7 +2192,7 @@ function Root() {
               return true;
             }).map(opt => {
               const meta = GOAL_META[opt];
-              const label = opt.startsWith('Building Muscle') ? 'Build Muscle' : opt;
+              const label = opt.startsWith('Building Muscle') ? '8 Week Muscle Building Program' : opt;
               const isRecommended = opt.startsWith('Building Muscle');
               return (
                 <AnimatedPress key={opt} style={[styles.goalCard, isRecommended && { borderColor: COLORS.accent + '55', shadowColor: COLORS.accent, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8 }, !isRecommended && { opacity: 0.6 }]} onPress={() => handleAnswer(opt)} scaleDown={0.97}>
@@ -2007,6 +2669,122 @@ function Root() {
     );
   }
 
+  // ── Plan Preview Screen (first-time onboarding) ──────────
+  if (screen === 'plan-preview') {
+    const isWomen = answers?.goal === 'Building Muscle - Women';
+    const workoutDays = (plan || []).filter(d => !d.day.includes('Rest'));
+    const DAY_ICONS = { 'Upper Body': '💪', 'Lower Body': '🦵', 'Push Day': '🏋️', 'Pull Day': '🔙', 'Leg Day': '🦵', 'Glutes': '🍑', 'Back': '🔙' };
+    const getDayIcon = (dayStr) => {
+      const label = dayStr.split('–')[1]?.trim() || '';
+      return Object.entries(DAY_ICONS).find(([k]) => label.includes(k))?.[1] || '🏃';
+    };
+    return (
+      <View style={[styles.container, { backgroundColor: COLORS.bg }]}>
+        <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={{ alignItems: 'center', marginBottom: 28, marginTop: 8 }}>
+            <Text style={{ fontSize: 36, marginBottom: 10 }}>💪</Text>
+            <Text style={{ color: COLORS.text, fontSize: 26, fontWeight: '900', textAlign: 'center', letterSpacing: -0.5 }}>
+              Your {isWomen ? "Women's" : "Men's"} Program
+            </Text>
+            <Text style={{ color: COLORS.muted, fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
+              8-week progressive overload plan • 5 workout days/week
+            </Text>
+          </View>
+
+          {/* Stats row */}
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 24 }}>
+            {[
+              { label: 'Weeks', value: '8' },
+              { label: 'Days / Week', value: '5' },
+              { label: 'Exercises', value: String(workoutDays.reduce((acc, d) => acc + d.exercises.filter(e => !e.includes('Stretching') && !e.includes('Foam') && !e.includes('Incline Walk')).length, 0)) },
+            ].map(({ label, value }) => (
+              <View key={label} style={{ flex: 1, backgroundColor: COLORS.card, borderRadius: 14, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#ffffff08', borderTopColor: '#ffffff20' }}>
+                <Text style={{ color: COLORS.text, fontSize: 22, fontWeight: '900' }}>{value}</Text>
+                <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '600', marginTop: 2 }}>{label}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Workout day cards */}
+          <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 14 }}>WEEKLY SPLIT</Text>
+          {workoutDays.map((d, i) => {
+            const label = d.day.split('–')[1]?.trim() || d.day;
+            const dayName = d.day.split('–')[0]?.trim() || '';
+            const exs = d.exercises.filter(e => !e.includes('Stretching') && !e.includes('Foam') && !e.includes('Incline Walk'));
+            return (
+              <View key={i} style={{ backgroundColor: COLORS.card, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#ffffff08', borderTopColor: '#ffffff18' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 }}>
+                  <Text style={{ fontSize: 18 }}>{getDayIcon(d.day)}</Text>
+                  <View>
+                    <Text style={{ color: COLORS.text, fontSize: 15, fontWeight: '800' }}>{label}</Text>
+                    <Text style={{ color: COLORS.muted, fontSize: 12 }}>{dayName} • {exs.length} exercises</Text>
+                  </View>
+                </View>
+                {exs.map((e, j) => {
+                  const clean = cleanExerciseName(e);
+                  const sr = parseSetsReps(e);
+                  return (
+                    <View key={j} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 5, borderTopWidth: j === 0 ? 0 : 1, borderTopColor: '#ffffff08' }}>
+                      <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', width: 20 }}>{String(j + 1).padStart(2, '0')}</Text>
+                      <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600', flex: 1 }}>{clean}</Text>
+                      {sr && <Text style={{ color: COLORS.muted, fontSize: 12 }}>{sr.sets}×{sr.reps}</Text>}
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })}
+
+          {/* Rest days note */}
+          <View style={{ backgroundColor: '#0c0c1e', borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#ffffff06', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Text style={{ fontSize: 18 }}>💤</Text>
+            <Text style={{ color: COLORS.muted, fontSize: 13, flex: 1, lineHeight: 18 }}>
+              Wednesday & Sunday are rest days with optional light stretching and foam rolling.
+            </Text>
+          </View>
+
+          {/* Medical condition warnings */}
+          {(() => {
+            const userConditions = profileForm.conditions || [];
+            const cautionConditions = userConditions.filter(c => HIGH_CAUTION_CONDITIONS.has(c));
+            if (cautionConditions.length === 0) return null;
+            return (
+              <View style={{ backgroundColor: '#2d1a00', borderRadius: 12, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#f59e0b40' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <Text style={{ fontSize: 16 }}>⚠️</Text>
+                  <Text style={{ color: '#f59e0b', fontSize: 14, fontWeight: '800' }}>Medical Considerations</Text>
+                </View>
+                <Text style={{ color: '#f59e0b99', fontSize: 13, lineHeight: 18, marginBottom: 10 }}>
+                  Based on your health profile, please consult your doctor before starting this program. The following conditions may require exercise modifications:
+                </Text>
+                {cautionConditions.map(c => (
+                  <View key={c} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#f59e0b' }} />
+                    <Text style={{ color: '#f59e0b', fontSize: 13, fontWeight: '600' }}>{c}</Text>
+                  </View>
+                ))}
+              </View>
+            );
+          })()}
+        </ScrollView>
+
+        {/* Continue button pinned to bottom */}
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, backgroundColor: COLORS.bg, borderTopWidth: 1, borderTopColor: '#ffffff08' }}>
+          <TouchableOpacity
+            onPress={() => setScreen('plan')}
+            style={{ backgroundColor: '#4ade80', borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#000', fontWeight: '900', fontSize: 16 }}>Continue to Workout →</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={restart} style={{ alignItems: 'center', marginTop: 14 }}>
+            <Text style={{ color: COLORS.muted, fontSize: 13 }}>← Go back</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   // ── Plan Overview Screen ─────────────────────────────────
   if (screen === 'plan') {
     return (
@@ -2342,14 +3120,17 @@ function Root() {
                       const sr = parseSetsReps(item);
                       const count = sr ? parseInt(sr.sets) : 3;
                       const lastLogs = logs[logKey(selectedDay.day, item)] || [];
+                      const weekEntryCard = lastLogs.find(en => en.programWeek === currentWeek);
                       const lastEntry = lastLogs.length > 0 ? lastLogs[lastLogs.length - 1] : null;
                       const fallbackReps = lastEntry?.reps || (sr ? sr.reps.split('-')[0] : '');
+                      const set1Weight = lastEntry?.sets?.[0]?.weight || lastEntry?.weight || '';
                       setSessionSets(Array.from({ length: count }, (_, idx) => ({
                         weight: lastEntry?.sets?.[idx]?.weight || lastEntry?.weight || '',
                         reps: lastEntry?.sets?.[idx]?.reps || fallbackReps,
                         completed: false,
                       })));
                       setScreen('progress');
+                      if (set1Weight && !weekEntryCard) { savedDismissRef.current = { index: null }; setWeightPickerIndex(0); setWeightPickerVisible(true); }
                     }
                   }}
                   activeOpacity={(isStretching || isFoamRolling || isRestDay) ? 1 : 0.75}
@@ -2389,7 +3170,7 @@ function Root() {
                               const last = thisWeekLogs[thisWeekLogs.length - 1];
                               const sets = last.sets || [{ weight: last.weight, reps: last.reps }];
                               const w = sets[0]?.weight;
-                              const summary = w ? `${sets.length} sets · ${w} kg` : `${sets.length} sets logged`;
+                              const summary = w ? `${sets.length} sets · ${w} lbs` : `${sets.length} sets logged`;
                               return <Text style={{ color: '#4ade80', fontSize: 12, fontWeight: '600', marginTop: 2 }}>{summary}</Text>;
                             })()
                       )}
@@ -2575,11 +3356,13 @@ function Root() {
       );
       const lastEntry = weekEntry || (allLogs.length > 0 ? allLogs[allLogs.length - 1] : null);
       const fallbackReps = lastEntry?.reps || (sr ? sr.reps.split('-')[0] : '');
+      const set1Weight = lastEntry?.sets?.[0]?.weight || lastEntry?.weight || '';
       setSessionSets(Array.from({ length: count }, (_, idx) => ({
         weight: lastEntry?.sets?.[idx]?.weight || lastEntry?.weight || '',
         reps: lastEntry?.sets?.[idx]?.reps || fallbackReps,
         completed: false,
       })));
+      if (set1Weight && !weekEntry) { savedDismissRef.current = { index: null }; setWeightPickerIndex(0); setWeightPickerVisible(true); }
     }
 
     function navigateExercise(newIdx) {
@@ -2589,13 +3372,16 @@ function Root() {
       const sr = parseSetsReps(newEx);
       const count = sr ? parseInt(sr.sets) : 3;
       const lastLogs = logs[logKey(selectedDay.day, newEx)] || [];
+      const weekEntryNav = lastLogs.find(en => en.programWeek === currentWeek);
       const lastEntry = lastLogs.length > 0 ? lastLogs[lastLogs.length - 1] : null;
       const fallbackReps = lastEntry?.reps || (sr ? sr.reps.split('-')[0] : '');
+      const set1Weight = lastEntry?.sets?.[0]?.weight || lastEntry?.weight || '';
       setSessionSets(Array.from({ length: count }, (_, idx) => ({
         weight: lastEntry?.sets?.[idx]?.weight || lastEntry?.weight || '',
         reps: lastEntry?.sets?.[idx]?.reps || fallbackReps,
         completed: false,
       })));
+      if (set1Weight && !weekEntryNav) { savedDismissRef.current = { index: null }; setWeightPickerIndex(0); setWeightPickerVisible(true); }
     }
 
     return (
@@ -2758,11 +3544,13 @@ function Root() {
                   const lastLogs = logs[logKey(selectedDay.day, selectedExercise)] || [];
                   const lastEntry = lastLogs.length > 0 ? lastLogs[lastLogs.length - 1] : null;
                   const fallbackReps = lastEntry?.reps || (sr ? sr.reps.split('-')[0] : '');
+                  const set1Weight = lastEntry?.sets?.[0]?.weight || lastEntry?.weight || '';
                   setSessionSets(Array.from({ length: count }, (_, idx) => ({
                     weight: lastEntry?.sets?.[idx]?.weight || lastEntry?.weight || '',
                     reps: lastEntry?.sets?.[idx]?.reps || fallbackReps,
                     completed: false,
                   })));
+                  if (set1Weight) { savedDismissRef.current = { index: null }; setWeightPickerIndex(0); setWeightPickerVisible(true); }
                 }}
               >
                 <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '600' }}>Reset</Text>
@@ -3052,11 +3840,11 @@ function Root() {
           const selectedVal = steps.find(w => Math.abs(w - currentW) < 0.01) ?? steps[0];
           return (
             <Modal visible={weightPickerVisible} transparent animationType="slide">
-              <TouchableOpacity activeOpacity={1} style={{ flex: 1, backgroundColor: '#000000cc', justifyContent: 'flex-end' }} onPress={() => { setTempWeightVal(null); setWeightPickerVisible(false); }}>
+              <TouchableOpacity activeOpacity={1} style={{ flex: 1, backgroundColor: '#000000cc', justifyContent: 'flex-end' }} onPress={() => { savedDismissRef.current = { index: weightPickerIndex }; setWeightPickerVisible(false); }}>
                 <TouchableOpacity activeOpacity={1} onPress={() => {}}>
 
-                  {/* ── Plate Calculator (Android only, separate card) ── */}
-                  {Platform.OS === 'android' && (() => {
+                  {/* ── Plate Calculator (Android only, barbell exercises only) ── */}
+                  {Platform.OS === 'android' && isBarbellExercise(selectedExercise) && (() => {
                     const totalWeight = platesToWeight(barPlates);
                     const scrollToWeight = (w) => {
                       const idx = steps.findIndex(s => Math.abs(s - w) < 0.01);
