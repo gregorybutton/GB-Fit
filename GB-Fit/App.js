@@ -39,11 +39,11 @@ function buildPlan(days) { return days; }
 
 const BARBELL_EXERCISES = new Set([
   'Incline Bench Press', 'Flat Bench Press', 'Romanian Deadlift',
-  'Shrugs', 'Back Squat', 'EZ Bar Seated Curl',
+  'Shrugs', 'Back Squat',
 ]);
 function isBarbellExercise(name) {
   const clean = cleanExerciseName(name || '');
-  return clean.includes('Barbell') || clean.includes('EZ Bar') || BARBELL_EXERCISES.has(clean);
+  return (clean.includes('Barbell') && !clean.includes('EZ Bar')) || BARBELL_EXERCISES.has(clean);
 }
 
 const PLATE_COLORS = { 45: '#c0392b', 35: '#2471a3', 25: '#d4ac0d', 10: '#1e8449', 5: '#717d7e', 2.5: '#aab7b8' };
@@ -66,22 +66,22 @@ function platesToWeight(plates) { return 45 + 2 * plates.reduce((s, p) => s + p,
 
 const WORKOUT_PLANS = {
   'Building Muscle - Men': buildPlan([
-    { day: 'Sunday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
-    { day: 'Monday – Upper Body', exercises: ['Incline Bench Press 4×6-8', 'Weighted Pull Ups 4×6-8', 'Bent Over Barbell Row 3×8-10', 'Pec Deck 3×10-12', 'Cable Single Arm Lateral Raise 3×12-15', 'Cable Tricep Pushdown 3×10-12', 'EZ Bar Seated Curl 3×10-12'] },
-    { day: 'Tuesday – Lower Body', exercises: ['Lying Leg Curl 3×8', 'Barbell Back Squat 4×5-8', 'Romanian Deadlift 3×8-10', 'Leg Press 3×10-12', 'Standing Calf Raise 4×10-15'] },
-    { day: 'Wednesday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
-    { day: 'Thursday – Push Day', exercises: ['Flat Bench Press 4×5-8', 'Machine Shoulder Press 3×10', 'Pec Deck 3×15', 'Cable Single Arm Lateral Raise 4×12-15', 'Overhead Extension 3×8'] },
-    { day: 'Friday – Pull Day', exercises: ['Neutral Grip Lat Pulldown 3×10', 'Dumbbell Chest Supported Row 3×8', 'Cable Seated Row 3×15', 'Reverse Cable Flyes 3×15', 'Shrugs 4×15', 'EZ Bar Seated Curl 3×10', 'Machine Preacher Curl 3×15'] },
-    { day: 'Saturday – Leg Day', exercises: ['Kneeling Leg Curl 3×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 3×10', 'Hip Adduction 3×10', 'Standing Calf Raise 3×10'] },
+    { day: 'Day 1 – Upper Body', exercises: ['Incline Bench Press 4×6-8', 'Weighted Pull Ups 4×6-8', 'Bent Over Barbell Row 3×8-10', 'Pec Deck 3×10-12', 'Cable Single Arm Lateral Raise 3×12-15', 'Cable Tricep Pushdown 3×10-12', 'EZ Bar Seated Curl 3×10-12'] },
+    { day: 'Day 2 – Lower Body', exercises: ['Lying Leg Curl 3×8', 'Barbell Back Squat 4×5-8', 'Romanian Deadlift 3×8-10', 'Leg Press 3×10-12', 'Standing Calf Raise 4×10-15'] },
+    { day: 'Day 3 – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
+    { day: 'Day 4 – Push', exercises: ['Flat Bench Press 4×5-8', 'Machine Shoulder Press 3×10', 'Pec Deck 3×15', 'Cable Single Arm Lateral Raise 4×12-15', 'Overhead Extension 3×8'] },
+    { day: 'Day 5 – Pull', exercises: ['Neutral Grip Lat Pulldown 3×10', 'Dumbbell Chest Supported Row 3×8', 'Cable Seated Row 3×15', 'Reverse Cable Flyes 3×15', 'Shrugs 4×15', 'EZ Bar Seated Curl 3×10', 'Machine Preacher Curl 3×15'] },
+    { day: 'Day 6 – Legs', exercises: ['Kneeling Leg Curl 3×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 3×10', 'Hip Adduction 3×10', 'Standing Calf Raise 3×10'] },
+    { day: 'Day 7 – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
   ]),
   'Building Muscle - Women': buildPlan([
-    { day: 'Sunday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
-    { day: 'Monday – Glutes + Hamstrings', exercises: ['Barbell Hip Thrust 4×6-8', 'Romanian Deadlift 4×8-10', 'Lying Leg Curl 3×10-12', 'Bulgarian Split Squat 3×8-10', 'Cable Kickback 3×12-15'] },
-    { day: 'Tuesday – Upper Body (Back + Shoulders)', exercises: ['Lat Pulldown 4×8-12', 'Seated Cable Row 3×10-12', 'Dumbbell Shoulder Press 3×8-10', 'Cable Lateral Raise 3×12-15', 'Rear Delt Machine Fly 3×12-15'] },
-    { day: 'Wednesday – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
-    { day: 'Thursday – Glute Pump / Isolation', exercises: ['Glute Bridge 4×10-12', 'Step Ups 3×10', 'Cable Glute Kickbacks 3×12-15', 'Hip Abduction Machine 3×15-20', '45° Back Extensions 3×12-15'] },
-    { day: 'Friday – Glutes + Quads', exercises: ['Back Squat 4×6-8', 'Leg Press 3×10-12', 'Walking Lunges 3×10', 'Leg Extension 3×12-15', 'Barbell Hip Thrust 3×8-10'] },
-    { day: 'Saturday – Leg Day', exercises: ['Kneeling Leg Curl 3×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 3×10', 'Hip Adduction 3×10', 'Standing Calf Raise 3×10'] },
+    { day: 'Day 1 – Upper Body', exercises: ['Lat Pulldown 4×8-12', 'Seated Cable Row 3×10-12', 'Dumbbell Shoulder Press 3×8-10', 'Cable Lateral Raise 3×12-15', 'Rear Delt Machine Fly 3×12-15'] },
+    { day: 'Day 2 – Lower Body', exercises: ['Barbell Hip Thrust 4×6-8', 'Romanian Deadlift 4×8-10', 'Lying Leg Curl 3×10-12', 'Bulgarian Split Squat 3×8-10', 'Cable Kickback 3×12-15'] },
+    { day: 'Day 3 – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
+    { day: 'Day 4 – Push', exercises: ['Glute Bridge 4×10-12', 'Step Ups 3×10', 'Cable Glute Kickbacks 3×12-15', 'Hip Abduction Machine 3×15-20', '45° Back Extensions 3×12-15'] },
+    { day: 'Day 5 – Pull', exercises: ['Back Squat 4×6-8', 'Leg Press 3×10-12', 'Walking Lunges 3×10', 'Leg Extension 3×12-15', 'Barbell Hip Thrust 3×8-10'] },
+    { day: 'Day 6 – Legs', exercises: ['Kneeling Leg Curl 3×8', 'Linear Hack Squat 3×6', 'Romanian Deadlift 3×8', 'Leg Extension 3×10', 'Hip Adduction 3×10', 'Standing Calf Raise 3×10'] },
+    { day: 'Day 7 – Rest', exercises: ['Full Body Stretching 15min', 'Full Body Foam Rolling Routine', 'Incline Walk 30min'] },
   ]),
 };
 
@@ -90,49 +90,6 @@ const QUESTIONS = [
   { key: 'goal', label: "What's your goal?", type: 'choice', options: ['Building Muscle - Men', 'Building Muscle - Women', 'Get a Nutrition Plan'] },
 ];
 
-const MEDICAL_CONDITIONS = [
-  { category: 'Cardiovascular', conditions: [
-    'High Blood Pressure (Hypertension)', 'Heart Disease / Coronary Artery Disease',
-    'Heart Failure', 'Atrial Fibrillation', 'History of Heart Attack',
-    'Peripheral Artery Disease', 'Deep Vein Thrombosis (DVT)',
-  ]},
-  { category: 'Metabolic', conditions: [
-    'Type 1 Diabetes', 'Type 2 Diabetes', 'Hypothyroidism', 'Hyperthyroidism',
-    'Metabolic Syndrome', 'Polycystic Ovary Syndrome (PCOS)', 'Obesity (BMI > 30)',
-  ]},
-  { category: 'Musculoskeletal', conditions: [
-    'Osteoporosis / Osteopenia', 'Osteoarthritis', 'Rheumatoid Arthritis',
-    'Chronic Lower Back Pain', 'Herniated / Bulging Disc', 'Scoliosis',
-    'Tendinitis', 'Rotator Cuff Injury', 'Knee Injury (ACL / Meniscus)',
-    'Hip Replacement / Injury', 'Plantar Fasciitis', 'Fibromyalgia',
-  ]},
-  { category: 'Respiratory', conditions: [
-    'Asthma', 'Exercise-Induced Asthma / Bronchospasm',
-    'COPD (Chronic Obstructive Pulmonary Disease)', 'Sleep Apnea',
-  ]},
-  { category: 'Neurological', conditions: [
-    'Multiple Sclerosis', "Parkinson's Disease", 'Epilepsy / Seizure Disorder',
-    'Stroke / TIA (History)', 'Neuropathy',
-  ]},
-  { category: 'Mental Health', conditions: [
-    'Depression', 'Anxiety Disorder', 'Eating Disorder', 'PTSD',
-  ]},
-  { category: 'Other', conditions: [
-    'Anemia', 'Chronic Fatigue Syndrome', 'Kidney Disease', 'Liver Disease',
-    'Cancer (Active or in Remission)', 'Autoimmune Condition', 'Pregnancy',
-    'Postpartum (Within 6 Months)', 'Celiac Disease', 'Lupus',
-  ]},
-];
-
-const ALL_CONDITIONS = MEDICAL_CONDITIONS.flatMap(g => g.conditions);
-
-// Conditions that require exercise caution warnings
-const HIGH_CAUTION_CONDITIONS = new Set([
-  'Heart Disease / Coronary Artery Disease', 'Heart Failure', 'History of Heart Attack',
-  'Atrial Fibrillation', 'High Blood Pressure (Hypertension)', 'Type 1 Diabetes',
-  'Type 2 Diabetes', 'Epilepsy / Seizure Disorder', 'Stroke / TIA (History)',
-  'Pregnancy', 'Osteoporosis / Osteopenia', 'COPD (Chronic Obstructive Pulmonary Disease)',
-]);
 
 const GOAL_META = {
   'Building Muscle - Men':   { icon: 'M', iconColor: '#ff6b6b', iconGradient: ['#e63946', '#7b1fa2'], subtitle: 'Track workouts' },
@@ -882,6 +839,76 @@ const BF_CATEGORIES = [
 ];
 
 
+function ProcessingScreen({ steps, onComplete, processingStep, setProcessingStep }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const doneScale = useRef(new Animated.Value(0)).current;
+  const itemAnims = useRef(steps.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+
+    const timers = steps.map((s, i) =>
+      setTimeout(() => {
+        setProcessingStep(i + 1);
+        Animated.spring(itemAnims[i], { toValue: 1, useNativeDriver: true, speed: 18, bounciness: 10 }).start();
+      }, s.delay)
+    );
+
+    const doneTimer = setTimeout(() => {
+      Animated.spring(doneScale, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 12 }).start();
+      setTimeout(onComplete, 700);
+    }, steps[steps.length - 1].delay + 700);
+
+    return () => { timers.forEach(clearTimeout); clearTimeout(doneTimer); };
+  }, []);
+
+  return (
+    <Animated.View style={{ width: '100%', alignItems: 'center', opacity: fadeAnim }}>
+      <Text style={{ color: COLORS.text, fontSize: 24, fontWeight: '900', textAlign: 'center', marginBottom: 8, letterSpacing: -0.5 }}>
+        Building your{'\n'}personalized plan...
+      </Text>
+      <Text style={{ color: COLORS.muted, fontSize: 13, marginBottom: 48, textAlign: 'center' }}>
+        Just a moment while we set things up
+      </Text>
+
+      <View style={{ width: '100%', gap: 16, marginBottom: 48 }}>
+        {steps.map((s, i) => (
+          <Animated.View
+            key={i}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 14,
+              opacity: itemAnims[i],
+              transform: [{ translateY: itemAnims[i].interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
+            }}
+          >
+            <View style={{
+              width: 28, height: 28, borderRadius: 14,
+              backgroundColor: processingStep > i ? '#4ade80' : COLORS.surface,
+              borderWidth: 1.5,
+              borderColor: processingStep > i ? '#4ade80' : '#ffffff18',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              {processingStep > i
+                ? <Text style={{ color: '#000', fontSize: 13, fontWeight: '900' }}>✓</Text>
+                : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.muted }} />
+              }
+            </View>
+            <Text style={{ color: processingStep > i ? COLORS.text : COLORS.muted, fontSize: 15, fontWeight: processingStep > i ? '700' : '400' }}>
+              {s.label}
+            </Text>
+          </Animated.View>
+        ))}
+      </View>
+
+      <Animated.View style={{ transform: [{ scale: doneScale }], opacity: doneScale }}>
+        <Text style={{ color: '#4ade80', fontSize: 16, fontWeight: '800' }}>All set! 🎉</Text>
+      </Animated.View>
+    </Animated.View>
+  );
+}
+
 function SliderInput({ min, max, step = 1, value, onValueChange, unit = '', categories }) {
   const [trackW, setTrackW] = useState(0);
   const trackRef = useRef(null);
@@ -963,11 +990,9 @@ function Root() {
   const [profileForm, setProfileForm] = useState({
     gender: '', age: '', weightLbs: '', heightFt: '', heightIn: '',
     bodyFatPct: '', chest: '', waist: '', hips: '', arms: '', thighs: '',
-    primaryGoal: '', fitnessLevel: '', sleepQuality: '', dailyCalories: '',
-    conditions: [],
+    primaryGoal: '', trainingDays: '', fitnessLevel: '', sleepQuality: '', dailyCalories: '',
   });
-  const [conditionSearch, setConditionSearch] = useState('');
-  const [hasConditions, setHasConditions] = useState(null); // null | 'yes' | 'no'
+  const [processingStep, setProcessingStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [exerciseDbImages, setExerciseDbImages] = useState({});
   const [menuVisible, setMenuVisible] = useState(false);
@@ -1183,9 +1208,8 @@ function Root() {
       setAnswers({ name });
       setAuthError('');
       setProfileStep(1);
-      setProfileForm({ gender: '', age: '', weightLbs: '', heightFt: '', heightIn: '', bodyFatPct: '', chest: '', waist: '', hips: '', arms: '', thighs: '', primaryGoal: '', fitnessLevel: '', sleepQuality: '', dailyCalories: '', conditions: [] });
-      setConditionSearch('');
-      setHasConditions(null);
+      setProfileForm({ gender: '', age: '', weightLbs: '', heightFt: '', heightIn: '', bodyFatPct: '', chest: '', waist: '', hips: '', arms: '', thighs: '', primaryGoal: '', trainingDays: '', fitnessLevel: '', sleepQuality: '', dailyCalories: '' });
+
       setScreen('profile-setup');
     });
   }
@@ -1576,7 +1600,16 @@ function Root() {
     ).length;
     const progress = workoutDays.length > 0 ? completedDays / workoutDays.length : 0;
     const programProgress = Math.round(((currentWeek - 1) / TOTAL_WEEKS + progress / TOTAL_WEEKS) * 100);
-    const momentum = completedDays === workoutDays.length && workoutDays.length > 0
+    const weekComplete = completedDays === workoutDays.length && workoutDays.length > 0 &&
+      workoutDays.every(d => {
+        const wk = `${d.day}|${currentWeek}`;
+        const dayExs = d.exercises.filter(e =>
+          !e.includes('Full Body Stretching') && !e.includes('Full Body Foam Rolling') && !e.includes('Incline Walk')
+        );
+        const hasLog = dayExs.some(e => (logs[logKey(d.day, e)] || []).some(en => en.programWeek === currentWeek));
+        return !!completedWorkouts[wk] && hasLog;
+      });
+    const momentum = weekComplete
       ? { label: '🏆 Week complete!', color: '#4ade80' }
       : progress >= 0.5
       ? { label: '🔥 You\'re on track', color: '#f97316' }
@@ -1584,53 +1617,74 @@ function Root() {
       ? { label: '💪 Keep the momentum', color: COLORS.muted }
       : { label: 'Start your first session', color: COLORS.muted };
     return (
-      <TouchableOpacity activeOpacity={0.85} onPress={() => { setWeekDetailFrom(fromScreen || 'plan'); setScreen('weekDetail'); }}
-        style={{ borderRadius: 20, marginBottom: 28, shadowColor: COLORS.accent, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.2, shadowRadius: 24, elevation: 8 }}>
-        <LinearGradient
-          colors={['#1e1040', '#0e1630', '#0a0a1a']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ borderRadius: 20, padding: 24, borderWidth: 1, borderColor: '#e9456028', borderTopColor: '#e9456055' }}
-        >
-        {/* Top row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <View>
-            <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Current Week</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-              <Text style={{ color: COLORS.text, fontWeight: '900', fontSize: 36, letterSpacing: -1 }}>{currentWeek}</Text>
-              <Text style={{ color: COLORS.muted, fontSize: 16 }}>/ {TOTAL_WEEKS}</Text>
+      <View style={{ marginBottom: 16 }}>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => { setWeekDetailFrom(fromScreen || 'plan'); setScreen('weekDetail'); }}
+          style={{ borderRadius: 20, shadowColor: COLORS.accent, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.2, shadowRadius: 24, elevation: 8 }}>
+          <LinearGradient
+            colors={['#1e1040', '#0e1630', '#0a0a1a']}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={{ borderRadius: 20, padding: 24, borderWidth: 1, borderColor: '#e9456028', borderTopColor: '#e9456055' }}
+          >
+          {/* Top row */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <View>
+              <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Current Week</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+                <Text style={{ color: COLORS.text, fontWeight: '900', fontSize: 36, letterSpacing: -1 }}>{currentWeek}</Text>
+                <Text style={{ color: COLORS.muted, fontSize: 16 }}>/ {TOTAL_WEEKS}</Text>
+              </View>
+            </View>
+            <View style={{ alignItems: 'flex-end', gap: 8 }}>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                <TouchableOpacity onPress={() => setCurrentWeek(w => Math.max(1, w - 1))} style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: currentWeek > 1 ? 1 : 0.3 }}>
+                  <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '700', lineHeight: 22 }}>‹</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setCurrentWeek(w => Math.min(TOTAL_WEEKS, w + 1))} style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: currentWeek < TOTAL_WEEKS ? 1 : 0.3 }}>
+                  <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '700', lineHeight: 22 }}>›</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={{ color: momentum.color, fontSize: 13, fontWeight: '700' }}>{momentum.label}</Text>
             </View>
           </View>
-          <View style={{ alignItems: 'flex-end', gap: 8 }}>
-            <View style={{ flexDirection: 'row', gap: 6 }}>
-              <TouchableOpacity onPress={() => setCurrentWeek(w => Math.max(1, w - 1))} style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: currentWeek > 1 ? 1 : 0.3 }}>
-                <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '700', lineHeight: 22 }}>‹</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setCurrentWeek(w => Math.min(TOTAL_WEEKS, w + 1))} style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#2a2a4a', alignItems: 'center', justifyContent: 'center', opacity: currentWeek < TOTAL_WEEKS ? 1 : 0.3 }}>
-                <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '700', lineHeight: 22 }}>›</Text>
-              </TouchableOpacity>
+          {/* Progress bar */}
+          <AnimatedProgressBar progress={programProgress / 100} height={8} color={COLORS.accent} trackColor="#2a2a4a" glowColor={COLORS.accent} style={{ marginBottom: 14 }} />
+          {/* Stats row */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View>
+              <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' }}>Sessions</Text>
+              <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '800', marginTop: 2 }}>{completedDays} <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '400' }}>/ {workoutDays.length}</Text></Text>
             </View>
-            <Text style={{ color: momentum.color, fontSize: 13, fontWeight: '700' }}>{momentum.label}</Text>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' }}>Program</Text>
+              <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '800', marginTop: 2 }}>{programProgress}<Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '400' }}>%</Text></Text>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' }}>Remaining</Text>
+              <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '800', marginTop: 2 }}>{workoutDays.length - completedDays} <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '400' }}>sessions</Text></Text>
+            </View>
           </View>
-        </View>
-        {/* Progress bar */}
-        <AnimatedProgressBar progress={programProgress / 100} height={8} color={COLORS.accent} trackColor="#2a2a4a" glowColor={COLORS.accent} style={{ marginBottom: 14 }} />
-        {/* Stats row */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <View>
-            <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' }}>Sessions</Text>
-            <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '800', marginTop: 2 }}>{completedDays} <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '400' }}>/ {workoutDays.length}</Text></Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Week complete card */}
+        {weekComplete && (
+          <View style={{ marginTop: 10, borderRadius: 16, borderWidth: 1, borderColor: '#4ade8040', borderTopColor: '#4ade8070', backgroundColor: '#4ade8010', padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={{ fontSize: 22 }}>🏆</Text>
+              <View>
+                <Text style={{ color: '#4ade80', fontSize: 15, fontWeight: '800' }}>Week complete!</Text>
+                <Text style={{ color: COLORS.muted, fontSize: 12, marginTop: 2 }}>You crushed all {workoutDays.length} sessions.</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => { setWeekDetailFrom(fromScreen || 'plan'); setScreen('weekDetail'); }}
+              style={{ backgroundColor: '#4ade8025', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: '#4ade8060' }}
+            >
+              <Text style={{ color: '#4ade80', fontSize: 13, fontWeight: '700' }}>View Progress</Text>
+            </TouchableOpacity>
           </View>
-          <View style={{ alignItems: 'center' }}>
-            <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' }}>Program</Text>
-            <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '800', marginTop: 2 }}>{programProgress}<Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '400' }}>%</Text></Text>
-          </View>
-          <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' }}>Remaining</Text>
-            <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '800', marginTop: 2 }}>{workoutDays.length - completedDays} <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '400' }}>sessions</Text></Text>
-          </View>
-        </View>
-        </LinearGradient>
-      </TouchableOpacity>
+        )}
+      </View>
     );
   }
 
@@ -1666,15 +1720,10 @@ function Root() {
       ? allWorkoutDays.find(d => !completedWorkouts[`${d.day}|${currentWeek}`])
       : null;
 
+    if (weekComplete) return null;
+
     let config;
-    if (weekComplete) {
-      config = {
-        emoji: '🏆', title: 'Week complete!',
-        subtitle: `You crushed all ${allWorkoutDays.length} sessions this week.`,
-        cta: 'View Progress', ctaDay: null, ctaScreen: 'weekDetail',
-        accent: '#4ade80', solid: false,
-      };
-    } else if (!todayDay) {
+    if (!todayDay) {
       return null;
     } else if (todayIsRest) {
       const nextLabel = nextWorkoutDay ? nextWorkoutDay.day.split('–').map(s => s.trim())[1] || nextWorkoutDay.day : null;
@@ -1761,20 +1810,13 @@ function Root() {
   if (screen === 'profile-setup') {
     const pf = profileForm;
     const setPF = (key, val) => setProfileForm(f => ({ ...f, [key]: val }));
-    const toggleCondition = (c) => setProfileForm(f => ({
-      ...f, conditions: f.conditions.includes(c) ? f.conditions.filter(x => x !== c) : [...f.conditions, c],
-    }));
     const heightIn = pf.heightFt ? parseInt(pf.heightFt) * 12 + (parseInt(pf.heightIn) || 0) : 0;
     const bmi = (heightIn > 0 && pf.weightLbs) ? ((parseFloat(pf.weightLbs) / (heightIn * heightIn)) * 703).toFixed(1) : null;
-    const filteredConditions = conditionSearch.trim()
-      ? ALL_CONDITIONS.filter(c => c.toLowerCase().includes(conditionSearch.toLowerCase()))
-      : null;
-    const TOTAL_STEPS = 4;
+    const TOTAL_STEPS = 3;
     const STEP_HEADLINES = [
       { eyebrow: "Let's build your plan", title: 'Tell us about you' },
       { eyebrow: 'Almost there', title: 'How does your body feel?' },
-      { eyebrow: 'One more thing', title: 'Your lifestyle matters' },
-      { eyebrow: 'Last step', title: 'Anything we should know?' },
+      { eyebrow: 'Last step', title: 'Your lifestyle matters' },
     ];
 
     function saveProfileAndContinue() {
@@ -1788,7 +1830,8 @@ function Root() {
         }
       });
       setAnswers(a => ({ ...a, goal: pf.gender === 'Female' ? undefined : undefined }));
-      setScreen('quiz');
+      setProcessingStep(0);
+      setScreen('processing');
     }
 
     const inputStyle = { backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, color: COLORS.text, fontSize: 15, borderWidth: 1, borderColor: '#ffffff10', marginBottom: 12 };
@@ -1873,12 +1916,22 @@ function Root() {
                 />
               </View>
 
-              {bmi && (
-                <View style={{ backgroundColor: '#1e1e3a', borderRadius: 12, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                  <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '600' }}>Calculated BMI</Text>
-                  <Text style={{ color: COLORS.text, fontSize: 22, fontWeight: '900' }}>{bmi}</Text>
-                </View>
-              )}
+              {bmi && (() => {
+                const b = parseFloat(bmi);
+                const { label, color } = b < 18.5 ? { label: 'Underweight', color: '#60a5fa' }
+                  : b < 25 ? { label: 'Healthy',        color: '#4ade80' }
+                  : b < 30 ? { label: 'Above Average',  color: '#f59e0b' }
+                  :          { label: 'High',            color: '#ef4444' };
+                return (
+                  <View style={{ backgroundColor: '#1e1e3a', borderRadius: 12, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, borderWidth: 1, borderColor: color + '30' }}>
+                    <View>
+                      <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 0.6, marginBottom: 2 }}>BMI</Text>
+                      <Text style={{ color, fontSize: 13, fontWeight: '700' }}>{label}</Text>
+                    </View>
+                    <Text style={{ color, fontSize: 28, fontWeight: '900' }}>{bmi}</Text>
+                  </View>
+                );
+              })()}
             </>
           )}
 
@@ -1911,6 +1964,28 @@ function Root() {
                     unit="%"
                     categories={BF_CATEGORIES}
                   />
+                </View>
+
+                {/* BF% reference guide */}
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                  {BF_CATEGORIES.map((cat, i) => {
+                    const nextMin = BF_CATEGORIES[i + 1]?.min;
+                    const range = nextMin ? `${cat.min}–${nextMin - 1}%` : `${cat.min}%+`;
+                    const currentBf = parseInt(pf.bodyFatPct) || 18;
+                    const isActive = currentBf >= cat.min && (nextMin ? currentBf < nextMin : true);
+                    return (
+                      <TouchableOpacity
+                        key={cat.label}
+                        onPress={() => setPF('bodyFatPct', String(cat.min + (nextMin ? Math.floor((nextMin - cat.min) / 2) : 3)))}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: isActive ? cat.color + '22' : COLORS.surface, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, borderWidth: 1, borderColor: isActive ? cat.color + '80' : '#ffffff10' }}
+                      >
+                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: cat.color }} />
+                        <Text style={{ color: isActive ? cat.color : COLORS.muted, fontSize: 12, fontWeight: isActive ? '700' : '400' }}>
+                          {cat.label} <Text style={{ fontWeight: '400', opacity: 0.7 }}>({range})</Text>
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
 
                 <View style={{ backgroundColor: '#1a1a3a', borderRadius: 12, padding: 14, marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -1998,6 +2073,26 @@ function Root() {
                 })}
               </View>
 
+              <Text style={labelStyle}>DAYS PER WEEK YOU CAN TRAIN</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
+                {[
+                  { val: '3', label: '3 days', sub: 'Consistent' },
+                  { val: '5', label: '5 days', sub: 'Committed' },
+                ].map(({ val, label, sub }) => {
+                  const active = pf.trainingDays === val;
+                  return (
+                    <TouchableOpacity
+                      key={val}
+                      onPress={() => setPF('trainingDays', val)}
+                      style={{ flex: 1, alignItems: 'center', backgroundColor: active ? COLORS.accent + '18' : COLORS.surface, borderRadius: 14, paddingVertical: 14, borderWidth: 1, borderColor: active ? COLORS.accent : '#ffffff10' }}
+                    >
+                      <Text style={{ color: active ? COLORS.accent : COLORS.text, fontSize: 16, fontWeight: '900' }}>{label}</Text>
+                      <Text style={{ color: COLORS.muted, fontSize: 11, marginTop: 3 }}>{sub}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
               <Text style={labelStyle}>CURRENT FITNESS LEVEL</Text>
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
                 {['Beginner', 'Intermediate', 'Advanced'].map(l => (
@@ -2019,104 +2114,6 @@ function Root() {
             </>
           )}
 
-          {/* ── Step 4: Medical Conditions ── */}
-          {profileStep === 4 && (
-            <>
-              {/* YES / NO gate */}
-              {hasConditions === null && (
-                <>
-                  <Text style={{ color: COLORS.muted, fontSize: 13, lineHeight: 20, marginBottom: 24 }}>
-                    This helps us flag exercises or intensities that may need to be modified for you.
-                  </Text>
-                  <View style={{ gap: 12 }}>
-                    {[
-                      { val: 'yes', label: 'Yes, I have some', sub: 'Injuries, conditions, or limitations', icon: '🩺' },
-                      { val: 'no',  label: 'Nope, all good',   sub: 'No known injuries or conditions',      icon: '✅' },
-                    ].map(({ val, label, sub, icon }) => (
-                      <TouchableOpacity
-                        key={val}
-                        onPress={() => {
-                          setHasConditions(val);
-                          if (val === 'no') setProfileForm(f => ({ ...f, conditions: [] }));
-                        }}
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: COLORS.surface, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#ffffff10' }}
-                      >
-                        <Text style={{ fontSize: 26 }}>{icon}</Text>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ color: COLORS.text, fontWeight: '800', fontSize: 15 }}>{label}</Text>
-                          <Text style={{ color: COLORS.muted, fontSize: 12, marginTop: 2 }}>{sub}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </>
-              )}
-
-              {/* No conditions selected */}
-              {hasConditions === 'no' && (
-                <View style={{ alignItems: 'center', paddingVertical: 32, gap: 12 }}>
-                  <Text style={{ fontSize: 48 }}>🎉</Text>
-                  <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: '900' }}>You're good to go!</Text>
-                  <Text style={{ color: COLORS.muted, fontSize: 13, textAlign: 'center', lineHeight: 19 }}>No conditions noted. We'll build your plan around full intensity.</Text>
-                  <TouchableOpacity onPress={() => setHasConditions(null)} style={{ marginTop: 8 }}>
-                    <Text style={{ color: COLORS.muted, fontSize: 13, textDecorationLine: 'underline' }}>Actually, I do have something</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {/* Full conditions list */}
-              {hasConditions === 'yes' && (
-                <>
-                  <TouchableOpacity onPress={() => setHasConditions(null)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 }}>
-                    <Text style={{ color: COLORS.muted, fontSize: 13 }}>‹ Go back</Text>
-                  </TouchableOpacity>
-                  <TextInput
-                    style={[inputStyle, { marginBottom: 16 }]}
-                    placeholder="Search conditions..."
-                    placeholderTextColor={COLORS.muted}
-                    value={conditionSearch}
-                    onChangeText={setConditionSearch}
-                  />
-                  {pf.conditions.length > 0 && (
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-                      {pf.conditions.map(c => (
-                        <TouchableOpacity key={c} onPress={() => toggleCondition(c)} style={{ backgroundColor: '#4ade8022', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: '#4ade8060', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Text style={{ color: '#4ade80', fontSize: 12, fontWeight: '600' }}>{c}</Text>
-                          <Text style={{ color: '#4ade80', fontSize: 12 }}>✕</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                  {(filteredConditions ?? MEDICAL_CONDITIONS.flatMap(g => g.conditions)).length > 0 && (
-                    filteredConditions ? (
-                      filteredConditions.map(c => (
-                        <TouchableOpacity key={c} onPress={() => toggleCondition(c)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 14, backgroundColor: pf.conditions.includes(c) ? '#4ade8012' : COLORS.surface, borderRadius: 10, marginBottom: 6, borderWidth: 1, borderColor: pf.conditions.includes(c) ? '#4ade8040' : '#ffffff08' }}>
-                          <View style={{ width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: pf.conditions.includes(c) ? '#4ade80' : '#4a4a72', backgroundColor: pf.conditions.includes(c) ? '#4ade80' : 'transparent', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                            {pf.conditions.includes(c) && <Text style={{ color: '#000', fontSize: 11, fontWeight: '900', lineHeight: 13 }}>✓</Text>}
-                          </View>
-                          <Text style={{ color: pf.conditions.includes(c) ? COLORS.text : COLORS.muted, fontSize: 14, flex: 1 }}>{c}</Text>
-                        </TouchableOpacity>
-                      ))
-                    ) : (
-                      MEDICAL_CONDITIONS.map(group => (
-                        <View key={group.category} style={{ marginBottom: 18 }}>
-                          <Text style={{ color: COLORS.accent, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 8 }}>{group.category.toUpperCase()}</Text>
-                          {group.conditions.map(c => (
-                            <TouchableOpacity key={c} onPress={() => toggleCondition(c)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 14, backgroundColor: pf.conditions.includes(c) ? '#4ade8012' : COLORS.surface, borderRadius: 10, marginBottom: 6, borderWidth: 1, borderColor: pf.conditions.includes(c) ? '#4ade8040' : '#ffffff08' }}>
-                              <View style={{ width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: pf.conditions.includes(c) ? '#4ade80' : '#4a4a72', backgroundColor: pf.conditions.includes(c) ? '#4ade80' : 'transparent', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                                {pf.conditions.includes(c) && <Text style={{ color: '#000', fontSize: 11, fontWeight: '900', lineHeight: 13 }}>✓</Text>}
-                              </View>
-                              <Text style={{ color: pf.conditions.includes(c) ? COLORS.text : COLORS.muted, fontSize: 14, flex: 1 }}>{c}</Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      ))
-                    )
-                  )}
-                </>
-              )}
-            </>
-          )}
         </ScrollView>
 
         {/* Bottom nav */}
@@ -2138,14 +2135,137 @@ function Root() {
               <Text style={{ color: '#000', fontWeight: '900', fontSize: 16 }}>Complete Setup</Text>
             </AnimatedPress>
           )}
-          {profileStep === 4 && (
-            <TouchableOpacity onPress={saveProfileAndContinue} style={{ alignItems: 'center', marginTop: 12 }}>
-              <Text style={{ color: COLORS.muted, fontSize: 13 }}>Skip for now</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
       </KeyboardAvoidingView>
+    );
+  }
+
+  // ── Processing Screen ─────────────────────────────────────
+  if (screen === 'processing') {
+    const STEPS = [
+      { label: 'Analyzing your body composition',  delay: 600  },
+      { label: 'Setting your calorie target',       delay: 1400 },
+      { label: 'Designing your workouts',           delay: 2200 },
+      { label: 'Personalizing your program',        delay: 3000 },
+    ];
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 36 }]}>
+        <ProcessingScreen
+          steps={STEPS}
+          onComplete={() => setScreen('plan-summary')}
+          processingStep={processingStep}
+          setProcessingStep={setProcessingStep}
+        />
+      </View>
+    );
+  }
+
+  // ── Plan Summary Screen ───────────────────────────────────
+  if (screen === 'plan-summary') {
+    const pf = profileForm;
+
+    // Calorie calculation — Mifflin-St Jeor
+    const weightKg = parseFloat(pf.weightLbs) / 2.205 || 0;
+    const heightCm = pf.heightFt ? (parseInt(pf.heightFt) * 12 + (parseInt(pf.heightIn) || 0)) * 2.54 : 0;
+    const age = parseInt(pf.age) || 25;
+    const isFemale = pf.gender === 'Female';
+    const bmr = isFemale
+      ? 10 * weightKg + 6.25 * heightCm - 5 * age - 161
+      : 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
+    const activityMult = pf.trainingDays === '5' ? 1.725 : 1.55;
+    const tdee = Math.round(bmr * activityMult);
+    const goalCalAdj = { 'Build Muscle': 250, 'Lose Fat': -450, 'Recomp': 0, 'Get Stronger': 150 };
+    const calories = tdee + (goalCalAdj[pf.primaryGoal] || 0);
+    const proteinPerLb = { 'Build Muscle': 0.85, 'Lose Fat': 1.1, 'Recomp': 1.0, 'Get Stronger': 0.8 };
+    const protein = Math.round((parseFloat(pf.weightLbs) || 160) * (proteinPerLb[pf.primaryGoal] || 0.85));
+
+    // Split based on training days
+    const split = pf.trainingDays === '5' ? 'Push / Pull / Legs' : 'Upper / Lower';
+    const splitDays = pf.trainingDays === '5' ? '5x / week' : '3x / week';
+
+    // Progression style based on fitness level
+    const progression = pf.fitnessLevel === 'Advanced' ? 'Conservative progression'
+      : pf.fitnessLevel === 'Intermediate' ? 'Moderate progression'
+      : 'Aggressive progression';
+
+    const rows = [
+      { icon: '🏋️', label: 'Goal',        value: pf.primaryGoal || 'Build Muscle' },
+      { icon: '📅', label: 'Split',       value: `${split} (${splitDays})` },
+      { icon: '🔥', label: 'Calories',    value: calories > 0 ? `${calories.toLocaleString()} kcal / day` : 'Set after quiz' },
+      { icon: '💪', label: 'Protein',     value: calories > 0 ? `${protein}g / day` : 'Set after quiz' },
+      { icon: '⚖️',  label: 'Progression', value: progression },
+    ];
+
+    const fadeAnim = new Animated.Value(0);
+    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+
+    return (
+      <View style={[styles.container, { paddingTop: 70, paddingHorizontal: 24 }]}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+          <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 6 }}>YOUR PLAN</Text>
+          <Text style={{ color: COLORS.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5, marginBottom: 4 }}>
+            Here's what we{'\n'}built for you 👇
+          </Text>
+          <Text style={{ color: COLORS.muted, fontSize: 13, marginBottom: 28 }}>
+            Based on your goals, body, and schedule
+          </Text>
+
+          {/* Plan card */}
+          <View style={{ backgroundColor: COLORS.surface, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#ffffff10', marginBottom: 20 }}>
+            {rows.map(({ icon, label, value }, i) => (
+              <View key={label}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, gap: 14 }}>
+                  <Text style={{ fontSize: 22, width: 32, textAlign: 'center' }}>{icon}</Text>
+                  <Text style={{ color: COLORS.muted, fontSize: 13, fontWeight: '600', width: 90 }}>{label}</Text>
+                  <Text style={{ color: COLORS.text, fontSize: 14, fontWeight: '700', flex: 1, textAlign: 'right' }}>{value}</Text>
+                </View>
+                {i < rows.length - 1 && <View style={{ height: 1, backgroundColor: '#ffffff08' }} />}
+              </View>
+            ))}
+          </View>
+
+          {/* Calorie breakdown */}
+          {calories > 0 && (
+            <View style={{ backgroundColor: '#1a1a3a', borderRadius: 16, padding: 18, marginBottom: 20, borderWidth: 1, borderColor: '#ffffff08' }}>
+              <Text style={{ color: COLORS.muted, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: 14 }}>MACRO SPLIT</Text>
+              {[
+                { label: 'Protein', grams: protein, cal: protein * 4, color: '#60a5fa' },
+                { label: 'Carbs',   grams: Math.round((calories - protein * 4 - Math.round(parseFloat(pf.weightLbs || 160) * 0.35) * 9) / 4), cal: calories - protein * 4 - Math.round(parseFloat(pf.weightLbs || 160) * 0.35) * 9, color: '#4ade80' },
+                { label: 'Fat',     grams: Math.round(parseFloat(pf.weightLbs || 160) * 0.35), cal: Math.round(parseFloat(pf.weightLbs || 160) * 0.35) * 9, color: '#f59e0b' },
+              ].map(({ label, grams, cal, color }) => {
+                const pct = Math.round((cal / calories) * 100);
+                return (
+                  <View key={label} style={{ marginBottom: 12 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600' }}>{label}</Text>
+                      <Text style={{ color: COLORS.muted, fontSize: 12 }}>{grams}g · {pct}%</Text>
+                    </View>
+                    <View style={{ height: 6, backgroundColor: '#1e1e3a', borderRadius: 3 }}>
+                      <View style={{ height: 6, backgroundColor: color, borderRadius: 3, width: `${pct}%` }} />
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          <Text style={{ color: COLORS.muted, fontSize: 12, textAlign: 'center', lineHeight: 18, marginBottom: 24 }}>
+            These are starting estimates. Your plan adapts as you log workouts and progress over time.
+          </Text>
+        </ScrollView>
+
+        {/* CTA */}
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, backgroundColor: COLORS.bg, borderTopWidth: 1, borderTopColor: '#ffffff08' }}>
+          <AnimatedPress
+            style={{ backgroundColor: COLORS.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}
+            onPress={() => setScreen('quiz')}
+            scaleDown={0.96}
+          >
+            <Text style={{ color: '#000', fontWeight: '900', fontSize: 16 }}>Let's Start Training 🚀</Text>
+          </AnimatedPress>
+        </View>
+      </View>
     );
   }
 
@@ -2744,29 +2864,6 @@ function Root() {
             </Text>
           </View>
 
-          {/* Medical condition warnings */}
-          {(() => {
-            const userConditions = profileForm.conditions || [];
-            const cautionConditions = userConditions.filter(c => HIGH_CAUTION_CONDITIONS.has(c));
-            if (cautionConditions.length === 0) return null;
-            return (
-              <View style={{ backgroundColor: '#2d1a00', borderRadius: 12, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#f59e0b40' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <Text style={{ fontSize: 16 }}>⚠️</Text>
-                  <Text style={{ color: '#f59e0b', fontSize: 14, fontWeight: '800' }}>Medical Considerations</Text>
-                </View>
-                <Text style={{ color: '#f59e0b99', fontSize: 13, lineHeight: 18, marginBottom: 10 }}>
-                  Based on your health profile, please consult your doctor before starting this program. The following conditions may require exercise modifications:
-                </Text>
-                {cautionConditions.map(c => (
-                  <View key={c} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#f59e0b' }} />
-                    <Text style={{ color: '#f59e0b', fontSize: 13, fontWeight: '600' }}>{c}</Text>
-                  </View>
-                ))}
-              </View>
-            );
-          })()}
         </ScrollView>
 
         {/* Continue button pinned to bottom */}
@@ -2794,6 +2891,38 @@ function Root() {
           <Text style={styles.backText}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Your Workout Plan</Text>
+
+        {/* Rest Timer Banner */}
+        {restTimerEnabled && restTimerRunning && (
+          <View style={styles.restBanner}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+              <Text style={{ color: '#4ade80', fontSize: 10, fontWeight: '800', letterSpacing: 1.2 }}>⏻  REST TIMER</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: 'bold', flex: 1, marginRight: 12 }} numberOfLines={1}>
+                {restingForExercise ? cleanExerciseName(restingForExercise) : 'Resting'}{' '}
+                <Text style={{ color: '#4ade80' }}>• {formatTime(restTimerRemaining)}</Text>
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  style={{ backgroundColor: '#2a2a3e', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 }}
+                  onPress={() => { setRestTimerRunning(false); setRestTimerRemaining(0); setRestingForExercise(null); }}
+                >
+                  <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '600' }}>Skip</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ backgroundColor: COLORS.accent, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 }}
+                  onPress={() => setRestTimerRemaining(r => Math.min(r + 30, restTimerDuration))}
+                >
+                  <Text style={{ color: COLORS.text, fontSize: 13, fontWeight: '700' }}>+30s</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={{ height: 3, backgroundColor: '#1a2a1a', borderRadius: 2 }}>
+              <View style={{ height: 3, backgroundColor: '#4ade80', borderRadius: 2, width: `${(restTimerRemaining / restTimerDuration) * 100}%` }} />
+            </View>
+          </View>
+        )}
 
         {/* Next Action Card */}
         <NextActionCard />
@@ -3267,6 +3396,9 @@ function Root() {
             if (user) updateDoc(doc(db, 'users', user.email), { completedWorkouts: updated });
             setShowCompleteButton(false);
             setShowDayComplete(true);
+            setRestTimerRunning(false);
+            setRestTimerRemaining(0);
+            setRestingForExercise(null);
             setTimeout(() => {
               setWorkoutChip(true);
               Animated.parallel([
@@ -3425,8 +3557,7 @@ function Root() {
           {/* Rest timer banner */}
           {restTimerEnabled && (() => {
             const suggested = getRestSuggestion(selectedExercise);
-            const isRunning = restTimerRunning && restingForExercise === selectedExercise;
-            const progressWidth = isRunning ? `${(restTimerRemaining / restTimerDuration) * 100}%` : '0%';
+            const progressWidth = restTimerRunning ? `${(restTimerRemaining / restTimerDuration) * 100}%` : '0%';
             return (
               <View style={[styles.restBanner, { marginBottom: 12 }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 5 }}>
@@ -3436,11 +3567,11 @@ function Root() {
                   <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: 'bold', flex: 1, marginRight: 12 }} numberOfLines={1}>
                     {cleanExerciseName(selectedExercise)}{' '}
                     <Text style={{ color: '#4ade80' }}>
-                      {isRunning ? `• ${formatTime(restTimerRemaining)}` : `• ${formatTime(suggested)}`}
+                      {restTimerRunning ? `• ${formatTime(restTimerRemaining)}` : `• ${formatTime(suggested)}`}
                     </Text>
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
-                    {isRunning ? (
+                    {restTimerRunning ? (
                       <>
                         <TouchableOpacity
                           style={{ backgroundColor: '#2a2a3e', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 }}
@@ -3688,12 +3819,35 @@ function Root() {
                       <Text style={{ color: COLORS.text, fontWeight: 'bold', fontSize: 16 }}>Week {entry.programWeek ?? entry.week}</Text>
                       <Text style={{ color: COLORS.muted, fontSize: 12 }}>{cleanExerciseName(selectedExercise)}</Text>
                     </View>
-                    <TouchableOpacity
-                      onPress={() => { setEditingEntryIndex(i); setEditSets((entry.sets || []).map(s => ({ weight: s.weight, reps: s.reps }))); }}
-                      style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}
-                    >
-                      <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '600' }}>Edit</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', gap: 6 }}>
+                      <TouchableOpacity
+                        onPress={() => { setEditingEntryIndex(i); setEditSets((entry.sets || []).map(s => ({ weight: s.weight, reps: s.reps }))); }}
+                        style={{ backgroundColor: '#2a2a4a', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}
+                      >
+                        <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '600' }}>Edit</Text>
+                      </TouchableOpacity>
+                      {i === data.length - 1 && (
+                        <TouchableOpacity
+                          onPress={() => Alert.alert(
+                            'Clear Week ' + (entry.programWeek ?? entry.week),
+                            'Remove this entry from log history? This cannot be undone.',
+                            [
+                              { text: 'Cancel', style: 'cancel' },
+                              { text: 'Clear', style: 'destructive', onPress: () => {
+                                const key = logKey(selectedDay.day, selectedExercise);
+                                const updatedEntries = data.filter((_, idx) => idx !== i);
+                                const updatedLogs = { ...logs, [key]: updatedEntries };
+                                setLogs(updatedLogs);
+                                if (user) updateDoc(doc(db, 'users', user.email), { logs: updatedLogs });
+                              }},
+                            ]
+                          )}
+                          style={{ backgroundColor: '#3a1a1a', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}
+                        >
+                          <Text style={{ color: '#ef4444', fontSize: 12, fontWeight: '600' }}>Clear</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   </View>
                   {/* Badges */}
                   {isPR && !isFirst && (
@@ -3840,8 +3994,8 @@ function Root() {
           const selectedVal = steps.find(w => Math.abs(w - currentW) < 0.01) ?? steps[0];
           return (
             <Modal visible={weightPickerVisible} transparent animationType="slide">
-              <TouchableOpacity activeOpacity={1} style={{ flex: 1, backgroundColor: '#000000cc', justifyContent: 'flex-end' }} onPress={() => { savedDismissRef.current = { index: weightPickerIndex }; setWeightPickerVisible(false); }}>
-                <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+              <TouchableOpacity activeOpacity={1} style={{ flex: 1, backgroundColor: '#000000cc' }} onPress={() => { savedDismissRef.current = { index: weightPickerIndex }; setWeightPickerVisible(false); }}>
+                <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
 
                   {/* ── Plate Calculator (Android only, barbell exercises only) ── */}
                   {Platform.OS === 'android' && isBarbellExercise(selectedExercise) && (() => {
@@ -3997,12 +4151,10 @@ function Root() {
                         </TouchableOpacity>
                       </View>
                     </View>
-                    {prevSetWeight ? (
-                      <View style={{ paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#ffffff08', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '600' }}>Previous Set</Text>
-                        <Text style={{ color: COLORS.accent, fontSize: 12, fontWeight: '700' }}>{prevSetWeight} lbs</Text>
-                      </View>
-                    ) : null}
+                    <View style={{ paddingHorizontal: 20, paddingVertical: 8, backgroundColor: '#ffffff08', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', opacity: prevSetWeight ? 1 : 0 }}>
+                      <Text style={{ color: COLORS.muted, fontSize: 12, fontWeight: '600' }}>Previous Set</Text>
+                      <Text style={{ color: COLORS.accent, fontSize: 12, fontWeight: '700' }}>{prevSetWeight || ''} lbs</Text>
+                    </View>
                     {Platform.OS === 'android' ? (() => {
                       const activeVal = tempWeightVal ?? selectedVal;
                       const milestones = { 135: '1 plate', 225: '2 plates', 315: '3 plates', 405: '4 plates', 585: '5 plates' };
@@ -4144,6 +4296,9 @@ function Root() {
             if (user) updateDoc(doc(db, 'users', user.email), { completedWorkouts: updated });
             setShowCompleteButton(false);
             setShowDayComplete(true);
+            setRestTimerRunning(false);
+            setRestTimerRemaining(0);
+            setRestingForExercise(null);
             setTimeout(() => {
               setWorkoutChip(true);
               Animated.parallel([
